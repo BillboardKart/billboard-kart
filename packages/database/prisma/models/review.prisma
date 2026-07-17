@@ -1,0 +1,18 @@
+// REVIEWS
+
+model Review {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billboardId   String   @map("billboard_id") @db.Uuid
+  reviewerId    String   @map("reviewer_id") @db.Uuid
+  bookingItemId String   @unique @map("booking_item_id") @db.Uuid
+  rating        Int      @db.SmallInt
+  comment       String?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  billboard   Billboard   @relation(fields: [billboardId], references: [id])
+  reviewer    User        @relation(fields: [reviewerId], references: [id])
+  bookingItem BookingItem @relation(fields: [bookingItemId], references: [id])
+
+  @@index([billboardId])
+  @@map("reviews")
+}
