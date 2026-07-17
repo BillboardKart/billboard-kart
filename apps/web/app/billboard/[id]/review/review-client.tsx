@@ -5,17 +5,17 @@ import { useRouter, useParams } from "next/navigation";
 import { Calendar, Check, MapPin, Plus, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TopNav } from "@/components/app/TopNav";
-import { Stepper } from "@/components/app/Stepper";
+// import { Stepper } from "@/components/app/Stepper";
 import { getBillboard } from "@/lib/billboards";
 import { useSelection } from "@/lib/selection";
 import { cn } from "@/lib/utils";
 
-const STEPS = [
-  { label: "Select Billboards" },
-  { label: "Choose Dates" },
-  { label: "Upload Artwork" },
-  { label: "Review Contract" },
-];
+// const STEPS = [
+//   { label: "Select Billboards" },
+//   { label: "Choose Dates" },
+//   { label: "Upload Artwork" },
+//   { label: "Review Contract" },
+// ];
 
 const TAX_RATE = 0.085;
 

@@ -1,0 +1,24 @@
+// VERIFICATION & COMPLIANCE COMPONENT
+
+model VerificationDocument {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId         String?        @map("owner_id") @db.Uuid
+  billboardId     String?        @map("billboard_id") @db.Uuid
+  documentType    String         @map("document_type")
+  fileUrl         String         @map("file_url")
+  status          DocumentStatus @default(pending)
+  reviewedBy      String?        @map("reviewed_by") @db.Uuid
+  reviewedAt      DateTime?      @map("reviewed_at") @db.Timestamptz
+  rejectionReason String?        @map("rejection_reason")
+  expiresAt       DateTime?      @map("expires_at") @db.Timestamptz
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations matching tenant.prisma and billboard.prisma
+  owner     User?      @relation("VerificationDocumentOwner", fields: [ownerId], references: [id])
+  reviewer  User?      @relation("VerificationDocumentReviewer", fields: [reviewedBy], references: [id])
+  billboard Billboard? @relation(fields: [billboardId], references: [id])
+
+  @@index([ownerId])
+  @@index([billboardId])
+  @@map("verification_documents")
+}

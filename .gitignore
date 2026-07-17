@@ -37,3 +37,7 @@ yarn-error.log*
 .DS_Store
 *.pem
 devplan.md
+
+# extras
+packages/database/src/generated
+packages/database/src/seed.ts

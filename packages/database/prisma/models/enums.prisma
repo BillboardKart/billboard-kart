@@ -1,0 +1,131 @@
+enum UserStatus {
+  active
+  pending_verification
+  suspended
+  deactivated
+
+  @@map("user_status")
+}
+
+enum UserRoleCode {
+  advertiser
+  owner
+  admin
+  tenant_admin
+  support
+
+  @@map("user_role_code")
+}
+
+enum BillboardLifecycleStatus {
+  draft
+  pending_review
+  active
+  inactive
+  suspended
+  archived
+
+  @@map("billboard_lifecycle_status")
+}
+
+enum BillboardQuickStatus {
+  available
+  booked
+  maintenance
+
+  @@map("billboard_quick_status")
+}
+
+enum MediaFileType {
+  image
+  video
+
+  @@map("media_file_type")
+}
+
+enum RateType {
+  daily
+  weekly
+  monthly
+  custom_range
+
+  @@map("rate_type")
+}
+
+enum OrderStatus {
+  pending_payment
+  confirmed
+  partially_cancelled
+  cancelled
+  completed
+
+  @@map("order_status")
+}
+
+enum BookingStatus {
+  pending_payment
+  pending_owner_approval
+  confirmed
+  live
+  completed
+  cancelled
+  rejected
+  disputed
+
+  @@map("booking_status")
+}
+
+enum PaymentStatus {
+  pending
+  authorized
+  captured
+  failed
+  refunded
+  partially_refunded
+  cancelled
+
+  @@map("payment_status")
+}
+
+enum TransactionType {
+  charge
+  refund
+  payout
+
+  @@map("transaction_type")
+}
+
+enum ContractStatus {
+  draft
+  active
+  superseded
+  void
+
+  @@map("contract_status")
+}
+
+enum DocumentStatus {
+  pending
+  approved
+  rejected
+  expired
+
+  @@map("document_status")
+}
+
+enum PayoutStatus {
+  scheduled
+  processing
+  paid
+  failed
+  on_hold
+
+  @@map("payout_status")
+}
+
+enum FeeType {
+  flat
+  percentage
+
+  @@map("fee_type")
+}

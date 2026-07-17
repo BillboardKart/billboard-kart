@@ -20,17 +20,17 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { TopNav } from "@/components/app/TopNav";
-import { Stepper } from "@/components/app/Stepper";
+// import { Stepper } from "@/components/app/Stepper";
 import { getBillboard } from "@/lib/billboards";
 import { useSelection } from "@/lib/selection";
 import { Button } from "@/components/ui/button";
 
-const STEPS = [
-  { label: "Select Billboards" },
-  { label: "Choose Dates" },
-  { label: "Upload Artwork" },
-  { label: "Review Contract" },
-];
+// const STEPS = [
+//   { label: "Select Billboards" },
+//   { label: "Choose Dates" },
+//   { label: "Upload Artwork" },
+//   { label: "Review Contract" },
+// ];
 
 const TAX_RATE = 0.085;
 const SERVICE_FEE = 120;

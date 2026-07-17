@@ -1,0 +1,35 @@
+// CONTRACTS
+
+model ContractTemplate {
+  id        String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId  String?        @map("tenant_id") @db.Uuid
+  type      String
+  title     String
+  body      String
+  version   Int            @default(1)
+  status    ContractStatus @default(active)
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant      Tenant?                   @relation(fields: [tenantId], references: [id])
+  acceptances OrderContractAcceptance[]
+
+  @@unique([tenantId, type, version])
+  @@map("contract_templates")
+}
+
+model OrderContractAcceptance {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId            String   @map("order_id") @db.Uuid
+  contractTemplateId String   @map("contract_template_id") @db.Uuid
+  acceptedBy         String   @map("accepted_by") @db.Uuid
+  ipAddress          String?  @map("ip_address") @db.Inet
+  userAgent          String?  @map("user_agent")
+  acceptedAt         DateTime @default(now()) @map("accepted_at") @db.Timestamptz
+
+  order            Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  contractTemplate ContractTemplate @relation(fields: [contractTemplateId], references: [id])
+  acceptor         User             @relation(fields: [acceptedBy], references: [id])
+
+  @@unique([orderId, contractTemplateId])
+  @@map("order_contract_acceptances")
+}
