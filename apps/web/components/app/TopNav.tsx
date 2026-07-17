@@ -86,7 +86,8 @@ export function TopNav() {
           const active =
             item.to === "/browse"
               ? pathname === "/browse" || pathname?.startsWith("/billboard")
-              : pathname === item.to || (item.to === "/upload" && pathname === "/review");
+              : pathname === item.to ||
+                (item.to === "/upload" && pathname === "/review");
 
           const Icon = item.icon;
 

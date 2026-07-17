@@ -38,7 +38,11 @@ interface MiniCalendarProps {
   setEndDay: (day: number) => void;
 }
 
-export default function BillboardClient({ billboard }: { billboard: Billboard; }) {
+export default function BillboardClient({
+  billboard,
+}: {
+  billboard: Billboard;
+}) {
   const router = useRouter();
   const selection = useSelection();
 
@@ -245,11 +249,11 @@ export default function BillboardClient({ billboard }: { billboard: Billboard; }
               <DateBox label="End Date" day={endDay} />
             </div>
 
-            <MiniCalendar 
-              startDay={startDay} 
-              endDay={endDay} 
-              setStartDay={setStartDay} 
-              setEndDay={setEndDay} 
+            <MiniCalendar
+              startDay={startDay}
+              endDay={endDay}
+              setStartDay={setStartDay}
+              setEndDay={setEndDay}
             />
 
             <div className="mt-4 flex items-end justify-between gap-3">
@@ -333,7 +337,8 @@ function DateBox({ label, day, year = "25" }: DateBoxProps) {
       <div className="mt-0.5 flex items-center gap-1.5 min-w-0">
         <CalendarDaysIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <span className="truncate text-xs font-semibold tracking-tight text-foreground">
-          Mar {day}, {"'"}{year}
+          Mar {day}, {"'"}
+          {year}
         </span>
       </div>
     </div>
@@ -388,7 +393,8 @@ function MiniCalendar({
         {days.map((d) => {
           const isStart = d === startDay;
           const isEnd = d === endDay;
-          const inRange = startDay > 0 && endDay > 0 && d > startDay && d < endDay;
+          const inRange =
+            startDay > 0 && endDay > 0 && d > startDay && d < endDay;
 
           return (
             <Button
@@ -399,9 +405,11 @@ function MiniCalendar({
               className={cn(
                 "grid h-8 w-full place-items-center rounded-md text-xs font-medium transition-all duration-150 p-0", // Added p-0 to clear default button padding
                 // Active start or end dates anchor styling
-                (isStart || isEnd) && "bg-foreground text-background font-semibold shadow-sm hover:bg-foreground hover:text-background",
+                (isStart || isEnd) &&
+                  "bg-foreground text-background font-semibold shadow-sm hover:bg-foreground hover:text-background",
                 // Mid-range date sequence styling
-                inRange && "bg-secondary text-foreground rounded-none first-of-type:rounded-l-md last-of-type:rounded-r-md hover:bg-secondary",
+                inRange &&
+                  "bg-secondary text-foreground rounded-none first-of-type:rounded-l-md last-of-type:rounded-r-md hover:bg-secondary",
                 // Unselected default interactive states
                 !isStart &&
                   !isEnd &&

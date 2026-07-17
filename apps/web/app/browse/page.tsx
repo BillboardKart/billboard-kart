@@ -3,7 +3,11 @@
 import { BillboardCard } from "@/components/app/BillboardCard";
 import { MapView } from "@/components/app/MapView";
 import { TopNav } from "@/components/app/TopNav";
-import { BILLBOARDS, CATEGORIES, type BillboardCategory } from "@/lib/billboards";
+import {
+  BILLBOARDS,
+  CATEGORIES,
+  type BillboardCategory,
+} from "@/lib/billboards";
 import { cn } from "@/lib/utils";
 import { List, Map as MapIcon, MapPin, Star } from "lucide-react";
 import Image from "next/image";
@@ -130,13 +134,16 @@ export default function BrowsePage() {
               {/* Legend */}
               <div className="pointer-events-none absolute left-3 top-3 sm:left-4 sm:top-4 z-1000 flex flex-wrap items-center gap-2 sm:gap-4 rounded-full bg-background/90 px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-medium shadow-sm backdrop-blur">
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-primary" /> Available
+                  <span className="h-2.5 w-2.5 rounded-full bg-primary" />{" "}
+                  Available
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/50" /> Booked
+                  <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/50" />{" "}
+                  Booked
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" /> Premium
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />{" "}
+                  Premium
                 </span>
               </div>
 
@@ -174,7 +181,6 @@ export default function BrowsePage() {
                     {/* Main Metadata Text Stack: Added md:flex md:flex-col md:justify-between md:h-24. 
                         This forces the title to align with the top of the image and pushes badges flush to the bottom edge! */}
                     <div className="min-w-0 md:flex md:h-24 md:flex-col md:justify-between">
-
                       {/* Top Section: Title and Address grouped together so title sits at the very top */}
                       <div>
                         <div className="hidden items-center gap-2 md:flex">
@@ -189,7 +195,8 @@ export default function BrowsePage() {
                         <div className="flex items-center gap-1 text-[11px] text-muted-foreground sm:text-xs md:mt-1">
                           <MapPin className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
                           <span className="truncate">
-                            {active.address}, {active.neighborhood} · {active.city}
+                            {active.address}, {active.neighborhood} ·{" "}
+                            {active.city}
                           </span>
                         </div>
                       </div>
@@ -229,7 +236,7 @@ export default function BrowsePage() {
                         >
                           View Details
                         </Link>
-              
+
                         <Link
                           href={`/billboard/${active.id}`}
                           className="inline-flex h-8 w-full items-center justify-center whitespace-nowrap rounded-sm bg-red-600 px-2 text-xs font-bold text-primary-foreground transition hover:bg-red-500 sm:h-9 sm:px-3 sm:text-sm md:w-28"
@@ -238,7 +245,6 @@ export default function BrowsePage() {
                         </Link>
                       </div>
                     </div>
-
                   </div>
                 </div>
               )}
