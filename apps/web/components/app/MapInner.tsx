@@ -69,7 +69,12 @@ export default function MapInner({
       scrollWheelZoom
       className="h-full w-full"
       /* Added explicit 100% dimensions and zIndex 0 to keep Leaflet contained */
-      style={{ height: "100%", width: "100%", background: "var(--surface)", zIndex: 0 }}
+      style={{
+        height: "100%",
+        width: "100%",
+        background: "var(--surface)",
+        zIndex: 0,
+      }}
     >
       <TileLayer
         attribution='&copy; <a href="https://carto.com/">CARTO</a>'

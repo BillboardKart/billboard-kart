@@ -1,0 +1,51 @@
+// PRICING (multi-currency, historized)
+
+model Currency {
+  code          String @id @db.Char(3)
+  symbol        String
+  decimalPlaces Int    @default(2) @map("decimal_places") @db.SmallInt
+
+  billboardPricing BillboardPricing[]
+  orders           Order[]
+  bookingItems     BookingItem[]
+  transactions     Transaction[]
+  payouts          Payout[]
+
+  @@map("currencies")
+}
+
+model BillboardPricing {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  billboardId   String    @map("billboard_id") @db.Uuid
+  currencyCode  String    @map("currency_code") @db.Char(3)
+  pricePerDay   Decimal?  @map("price_per_day") @db.Decimal(12, 2)
+  pricePerWeek  Decimal   @map("price_per_week") @db.Decimal(12, 2)
+  pricePerMonth Decimal   @map("price_per_month") @db.Decimal(12, 2)
+  effectiveFrom DateTime  @default(now()) @map("effective_from") @db.Timestamptz
+  effectiveTo   DateTime? @map("effective_to") @db.Timestamptz
+
+  billboard Billboard @relation(fields: [billboardId], references: [id], onDelete: Cascade)
+  currency  Currency  @relation(fields: [currencyCode], references: [code])
+
+  // Partial unique index `WHERE effective_to IS NULL` (only one active price per
+  // billboard+currency) lives in post_migration.sql.
+  @@index([billboardId, currencyCode, effectiveFrom])
+  @@map("billboard_pricing")
+}
+
+model PlatformFeeRule {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId        String?   @map("tenant_id") @db.Uuid
+  name            String
+  feeType         FeeType   @map("fee_type")
+  value           Decimal   @db.Decimal(8, 4)
+  appliesToTypeId String?   @map("applies_to_type_id") @db.Uuid
+  isActive        Boolean   @default(true) @map("is_active")
+  effectiveFrom   DateTime  @default(now()) @map("effective_from") @db.Timestamptz
+  effectiveTo     DateTime? @map("effective_to") @db.Timestamptz
+
+  tenant        Tenant?        @relation(fields: [tenantId], references: [id])
+  appliesToType BillboardType? @relation(fields: [appliesToTypeId], references: [id])
+
+  @@map("platform_fee_rules")
+}

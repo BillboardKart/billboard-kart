@@ -1,0 +1,88 @@
+// 6. AVAILABILITY & BOOKING CALENDAR
+
+model ArtworkUpload {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  uploadedBy      String        @map("uploaded_by") @db.Uuid
+  fileUrl         String        @map("file_url")
+  fileType        MediaFileType @map("file_type")
+  mimeType        String        @map("mime_type")
+  fileSizeBytes   BigInt        @map("file_size_bytes") // CHECK <= 52428800 (50MB) — see post_migration.sql
+  widthPx         Int?          @map("width_px")
+  heightPx        Int?          @map("height_px")
+  durationSeconds Decimal?      @map("duration_seconds") @db.Decimal(6, 2)
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  uploader     User          @relation(fields: [uploadedBy], references: [id])
+  bookingItems BookingItem[]
+
+  @@map("artwork_uploads")
+}
+
+model Order {
+  id               String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId         String?     @map("tenant_id") @db.Uuid
+  advertiserId     String      @map("advertiser_id") @db.Uuid
+  status           OrderStatus @default(pending_payment)
+  currencyCode     String      @map("currency_code") @db.Char(3)
+  subtotalAmount   Decimal     @default(0) @map("subtotal_amount") @db.Decimal(12, 2)
+  taxPercentage    Decimal     @default(0) @map("tax_percentage") @db.Decimal(5, 2)
+  taxAmount        Decimal     @default(0) @map("tax_amount") @db.Decimal(12, 2)
+  serviceFeeAmount Decimal     @default(0) @map("service_fee_amount") @db.Decimal(12, 2)
+  totalAmount      Decimal     @default(0) @map("total_amount") @db.Decimal(12, 2)
+  cancellableUntil DateTime?   @map("cancellable_until") @db.Timestamptz
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime    @default(now()) @map("updated_at") @db.Timestamptz
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id])
+  advertiser User     @relation(fields: [advertiserId], references: [id])
+  currency   Currency @relation(fields: [currencyCode], references: [code])
+
+  bookingItems        BookingItem[]
+  contractAcceptances OrderContractAcceptance[]
+  transactions        Transaction[]
+
+  @@index([advertiserId, createdAt])
+  @@map("orders")
+}
+
+model BookingItem {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId     String   @map("order_id") @db.Uuid
+  billboardId String   @map("billboard_id") @db.Uuid
+  ownerId     String   @map("owner_id") @db.Uuid
+  startDate   DateTime @map("start_date") @db.Date
+  endDate     DateTime @map("end_date") @db.Date
+
+  // GENERATED ALWAYS AS (daterange(start_date, end_date, '[]')) STORED
+  // Created by post_migration.sql, together with the EXCLUDE USING gist constraint
+  // that is the actual double-booking guarantee. Read-only via Prisma Client.
+  dateRange Unsupported("daterange")? @map("date_range")
+
+  rateType           RateType      @map("rate_type")
+  currencyCode       String        @map("currency_code") @db.Char(3)
+  unitPrice          Decimal       @map("unit_price") @db.Decimal(12, 2)
+  lineSubtotal       Decimal       @map("line_subtotal") @db.Decimal(12, 2)
+  artworkUploadId    String?       @map("artwork_upload_id") @db.Uuid
+  status             BookingStatus @default(pending_payment)
+  cancelledAt        DateTime?     @map("cancelled_at") @db.Timestamptz
+  cancellationReason String?       @map("cancellation_reason")
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime      @default(now()) @map("updated_at") @db.Timestamptz
+
+  order         Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  billboard     Billboard      @relation(fields: [billboardId], references: [id])
+  owner         User           @relation("BookingItemOwner", fields: [ownerId], references: [id])
+  currency      Currency       @relation(fields: [currencyCode], references: [code])
+  artworkUpload ArtworkUpload? @relation(fields: [artworkUploadId], references: [id])
+
+  review      Review?
+  payoutItems PayoutItem[]
+
+  // NOTE: the critical `EXCLUDE USING gist (billboard_id WITH =, date_range WITH &&)
+  // WHERE status IN (...)` constraint that prevents double-booking cannot be expressed
+  // in Prisma's schema language. It is created by post_migration.sql — do not skip it.
+  @@index([billboardId])
+  @@index([ownerId, status])
+  @@index([orderId])
+  @@map("booking_items")
+}

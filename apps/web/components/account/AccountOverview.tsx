@@ -2,16 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
 import {
   ArrowUpRight,
-  Bell,
+  //   Bell,
   Building2,
   CreditCard,
-  FileText,
+  //   FileText,
   Settings,
-  ShieldCheck,
-  User2,
+  //   ShieldCheck,
+  //   User2,
   Users,
 } from "lucide-react";
 
@@ -26,53 +26,53 @@ interface AccountOverviewProps {
   readonly avatar: string;
 }
 
-interface MenuItem {
-  readonly title: string;
-  readonly description: string;
-  readonly href: string;
-  readonly icon: React.ElementType;
-  readonly badge?: string;
-}
+// interface MenuItem {
+//   readonly title: string;
+//   readonly description: string;
+//   readonly href: string;
+//   readonly icon: React.ElementType;
+//   readonly badge?: string;
+// }
 
-const MENU_ITEMS: readonly MenuItem[] = [
-  {
-    title: "Profile",
-    description: "Manage your personal information.",
-    href: "/account/profile",
-    icon: User2,
-  },
-  {
-    title: "Billing",
-    description: "Invoices, subscriptions and payment methods.",
-    href: "/account/billing",
-    icon: CreditCard,
-  },
-  {
-    title: "Notifications",
-    description: "Email and campaign alerts.",
-    href: "/account/notifications",
-    icon: Bell,
-  },
-  {
-    title: "Team Members",
-    description: "Invite and manage your organization.",
-    href: "/account/team",
-    icon: Users,
-    badge: "Coming Soon",
-  },
-  {
-    title: "Security",
-    description: "Password, 2FA and account protection.",
-    href: "/account/security",
-    icon: ShieldCheck,
-  },
-  {
-    title: "Documents",
-    description: "Contracts and billing history.",
-    href: "/account/documents",
-    icon: FileText,
-  },
-];
+// const MENU_ITEMS: readonly MenuItem[] = [
+//   {
+//     title: "Profile",
+//     description: "Manage your personal information.",
+//     href: "/account/profile",
+//     icon: User2,
+//   },
+//   {
+//     title: "Billing",
+//     description: "Invoices, subscriptions and payment methods.",
+//     href: "/account/billing",
+//     icon: CreditCard,
+//   },
+//   {
+//     title: "Notifications",
+//     description: "Email and campaign alerts.",
+//     href: "/account/notifications",
+//     icon: Bell,
+//   },
+//   {
+//     title: "Team Members",
+//     description: "Invite and manage your organization.",
+//     href: "/account/team",
+//     icon: Users,
+//     badge: "Coming Soon",
+//   },
+//   {
+//     title: "Security",
+//     description: "Password, 2FA and account protection.",
+//     href: "/account/security",
+//     icon: ShieldCheck,
+//   },
+//   {
+//     title: "Documents",
+//     description: "Contracts and billing history.",
+//     href: "/account/documents",
+//     icon: FileText,
+//   },
+// ];
 
 export default function AccountOverview({
   name,

@@ -31,7 +31,7 @@ export default function BillboardCarousel() {
         duration: 60000,
         iterations: Number.POSITIVE_INFINITY,
         easing: "linear",
-      }
+      },
     );
 
     animationRef.current = animation;
@@ -71,10 +71,7 @@ export default function BillboardCarousel() {
 
       <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-32 bg-linear-to-l from-background via-background/80 to-transparent" />
 
-      <div
-        ref={marqueeRef}
-        className="flex w-max gap-8 py-3"
-      >
+      <div ref={marqueeRef} className="flex w-max gap-8 py-3">
         {cards.map((billboard, index) => (
           <div
             key={`${billboard.id}-${index}`}

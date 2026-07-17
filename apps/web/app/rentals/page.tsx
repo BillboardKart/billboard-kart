@@ -8,7 +8,7 @@ import RentalStats from "@/components/rentals/RentalStats";
 import RentalTimeline, {
   TimelineItem,
 } from "@/components/rentals/RentalTimeline";
-import RentalsTabs from "@/components/rentals/RentalsTabs";
+// import RentalsTabs from "@/components/rentals/RentalsTabs";
 import RentalCard from "@/components/rentals/RentalCard";
 import EmptyState from "@/components/rentals/EmptyState";
 
