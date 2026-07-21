@@ -1,3 +1,4 @@
+import { UserProvider } from "@/components/providers/user-provider";
 import { SelectionProvider } from "@/lib/selection";
 import { cn } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -29,7 +30,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", inter.variable)}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <SelectionProvider>{children}</SelectionProvider>
+        <SelectionProvider>
+          <UserProvider>{children}</UserProvider>
+        </SelectionProvider>
       </body>
     </html>
   );
