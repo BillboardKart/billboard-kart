@@ -27,7 +27,7 @@ const app = new Elysia({ prefix: "/api/v1" })
   .use(userRoutes)
   .use(cityRoutes)
 
-  .listen(process.env.PORT || 3001);
+  .listen(process.env.BACKEND_APP_PORT || 3001);
 
 console.log(
   `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,

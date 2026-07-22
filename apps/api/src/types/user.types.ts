@@ -29,28 +29,6 @@ export type CurrentUserResponse =
       };
     };
 
-// Supabase JWT Payload interface for local verification
-export interface SupabaseJwtPayload {
-  aud: string;
-  exp: number;
-  sub: string; // This is the User UUID
-  email: string;
-  phone: string;
-  app_metadata: {
-    provider?: string;
-    providers?: string[];
-  };
-  user_metadata: {
-    full_name?: string;
-    avatar_url?: string;
-    [key: string]: any;
-  };
-  role: string;
-  aal: string;
-  amr: { method: string; timestamp: number }[];
-  session_id: string;
-}
-
 export interface OnboardUserRequest {
   fullName: string;
   primaryRole: UserRoleCode;
@@ -58,13 +36,4 @@ export interface OnboardUserRequest {
   businessUrl?: string | null;
   phone: string;
   cityId: string;
-}
-
-/**
- * Response returned after successful onboarding.
- */
-export interface OnboardUserResponse {
-  success: boolean;
-  message: string;
-  userId: string;
 }
