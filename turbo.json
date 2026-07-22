@@ -1,7 +1,17 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["DATABASE_URL", "DIRECT_URL", "NODE_ENV"],
+  "globalEnv": [
+    "BACKEND_APP_PORT",
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "NODE_ENV",
+    "NEXT_PUBLIC_API_URL",
+    "TENANT_ID",
+    "SUPABASE_URL",
+    "SUPABASE_PUBLISHABLE_KEY",
+    "INITIAL_USER_PASSWORD"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

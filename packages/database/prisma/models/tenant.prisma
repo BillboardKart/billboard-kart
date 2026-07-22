@@ -22,18 +22,20 @@ model Tenant {
 
 model User {
   id                String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId          String?      @map("tenant_id") @db.Uuid
+  tenantId          String?      @default("a2b77063-b881-426f-bf12-8d1018650450") @map("tenant_id") @db.Uuid // I set default id after creating one record in the tenants table
   email             String       @db.Citext
   phone             String?
   passwordHash      String       @map("password_hash")
   fullName          String       @map("full_name")
+  businessName      String       @map("business_name")
+  businessUrl       String?      @map("business_url")
   avatarUrl         String?      @map("avatar_url")
   primaryRole       UserRoleCode @default(advertiser) @map("primary_role")
   status            UserStatus   @default(pending_verification)
   defaultCityId     String?      @map("default_city_id") @db.Uuid
   defaultLat        Float?       @map("default_lat")
   defaultLng        Float?       @map("default_lng")
-  preferredCurrency String       @default("USD") @map("preferred_currency") @db.Char(3)
+  preferredCurrency String       @default("INR") @map("preferred_currency") @db.Char(3)
   emailVerifiedAt   DateTime?    @map("email_verified_at") @db.Timestamptz
   phoneVerifiedAt   DateTime?    @map("phone_verified_at") @db.Timestamptz
   createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz
