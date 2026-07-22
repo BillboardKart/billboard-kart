@@ -2,7 +2,7 @@
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
   "globalEnv": [
-    "BACKEND_APP_PORT",
+    "PORT",
     "DATABASE_URL",
     "DIRECT_URL",
     "NODE_ENV",
