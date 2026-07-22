@@ -18,7 +18,7 @@ export async function loadCurrentUser() {
 
   const data = await response.json();
 
-  useUserStore.getState().setCurrentUser(data);
+  useUserStore.getState().hydrate(data);
 
   return data;
 }
