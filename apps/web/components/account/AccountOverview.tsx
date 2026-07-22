@@ -15,70 +15,23 @@ import {
   Users,
 } from "lucide-react";
 
+import { useUserStore } from "@/stores/user-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-interface AccountOverviewProps {
-  readonly name: string;
-  readonly email: string;
-  readonly avatar: string;
-}
+export default function AccountOverview() {
+  const user = useUserStore((state) => state.user);
 
-// interface MenuItem {
-//   readonly title: string;
-//   readonly description: string;
-//   readonly href: string;
-//   readonly icon: React.ElementType;
-//   readonly badge?: string;
-// }
+  const avatar =
+    user?.avatarUrl ||
+    "https://ui-avatars.com/api/?name=User&background=ececec&color=555";
 
-// const MENU_ITEMS: readonly MenuItem[] = [
-//   {
-//     title: "Profile",
-//     description: "Manage your personal information.",
-//     href: "/account/profile",
-//     icon: User2,
-//   },
-//   {
-//     title: "Billing",
-//     description: "Invoices, subscriptions and payment methods.",
-//     href: "/account/billing",
-//     icon: CreditCard,
-//   },
-//   {
-//     title: "Notifications",
-//     description: "Email and campaign alerts.",
-//     href: "/account/notifications",
-//     icon: Bell,
-//   },
-//   {
-//     title: "Team Members",
-//     description: "Invite and manage your organization.",
-//     href: "/account/team",
-//     icon: Users,
-//     badge: "Coming Soon",
-//   },
-//   {
-//     title: "Security",
-//     description: "Password, 2FA and account protection.",
-//     href: "/account/security",
-//     icon: ShieldCheck,
-//   },
-//   {
-//     title: "Documents",
-//     description: "Contracts and billing history.",
-//     href: "/account/documents",
-//     icon: FileText,
-//   },
-// ];
+  const firstName = user?.fullName?.trim().split(" ")[0] || "User";
+  const fullName = user?.fullName;
+  const email = user?.email;
 
-export default function AccountOverview({
-  name,
-  email,
-  avatar,
-}: AccountOverviewProps) {
   return (
     <div className="space-y-10">
       {/* Hero */}
@@ -93,7 +46,7 @@ export default function AccountOverview({
                 <div className="relative h-28 w-28 overflow-hidden rounded-3xl border-4 border-background">
                   <Image
                     src={avatar}
-                    alt={name}
+                    alt={firstName}
                     fill
                     unoptimized
                     className="object-cover"
@@ -106,7 +59,7 @@ export default function AccountOverview({
                   </Badge>
 
                   <h1 className="text-4xl font-semibold tracking-tight">
-                    {name}
+                    {fullName}
                   </h1>
 
                   <p className="mt-2 text-muted-foreground">{email}</p>
@@ -118,7 +71,7 @@ export default function AccountOverview({
                 size="lg"
                 className="bg-red-600 hover:bg-red-700 rounded-sm"
               >
-                <Link href="/settings">
+                <Link href="/">
                   Account Settings
                   <ArrowUpRight className="ml-2 h-4 w-4" />
                 </Link>
