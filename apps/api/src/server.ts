@@ -40,12 +40,19 @@ const app = new Elysia({ prefix: "/api/v1" })
 
   .use(
     cors({
-      origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+      origin: [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        process.env.NEXT_PUBLIC_APP_URL!,
+      ],
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
       credentials: true,
     }),
   )
+  .get("/", () => {
+    return { msg: "billboardkart root" };
+  })
   // Mount Domain Modules
   .use(userRoutes)
   .use(cityRoutes)
