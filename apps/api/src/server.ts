@@ -11,6 +11,7 @@ const required = [
   "DATABASE_URL",
   "TENANT_ID",
   "INITIAL_USER_PASSWORD",
+  "NEXT_PUBLIC_APP_URL",
 ];
 
 for (const key of required) {
@@ -37,7 +38,14 @@ const app = new Elysia({ prefix: "/api/v1" })
     };
   })
 
-  .use(cors({ origin: "http://localhost:3000" })) // replace with the deployed url
+  .use(
+    cors({
+      origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
+    }),
+  )
   // Mount Domain Modules
   .use(userRoutes)
   .use(cityRoutes)
@@ -45,5 +53,5 @@ const app = new Elysia({ prefix: "/api/v1" })
   .listen(process.env.PORT ?? 3001);
 
 console.log(
-  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
+  `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port} `,
 );

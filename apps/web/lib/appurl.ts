@@ -1,3 +1,4 @@
+// lib/appurl.ts
 /**
  * Returns the canonical base URL of the app (e.g. https://billboardkart.vercel.app).
  * Uses NEXT_PUBLIC_APP_URL from env; falls back to window.location.origin on client.
