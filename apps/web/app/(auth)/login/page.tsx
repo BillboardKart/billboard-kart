@@ -1,13 +1,9 @@
 // app/(auth)/login/page.tsx
 "use client";
 
-// FIX: FIX ALL THE WARNINGS & TODOS BEFORE PUSHING THIS TO THE PRODUCTION
-// WARNINGS ARE MENTIONED THROUGHOUT THE CODE
-
 import { AnimatePresence, motion, Transition } from "framer-motion";
 import {
   ArrowLeft,
-  Briefcase,
   Check,
   Eye,
   EyeOff,
@@ -25,9 +21,8 @@ import { getAuthCallbackUrl, getResetPasswordUrl } from "@/lib/appurl";
 import { handleGoogleLogin } from "@/lib/google-oauth/login";
 import { fieldVariants, slideUp } from "@/lib/motion";
 import { createClient } from "@/lib/supabase/client";
-import { CurrentUserResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useUserStore } from "@/stores/user-store";
+import { CurrentUserResponse } from "@/lib/types";
 
 export default function AuthPageWrapper() {
   return (
@@ -72,9 +67,8 @@ const GoogleIcon = () => (
 );
 
 function AuthPage() {
-  const hydrateUser = useUserStore((state) => state.hydrate);
-
   const router = useRouter();
+
   const searchParams = useSearchParams();
   const initialMode: AuthMode =
     searchParams.get("mode") === "register"
@@ -96,7 +90,6 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [businessName, setBusinessName] = useState("");
 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [agree, setAgree] = useState(false);
@@ -157,7 +150,6 @@ function AuthPage() {
 
     if (isRegister) {
       const fields = {
-        businessName,
         fullName,
         email,
         password,
@@ -193,10 +185,7 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: getAuthCallbackUrl(),
-            data: {
-              full_name: fullName,
-              business_name: businessName,
-            },
+            data: { full_name: fullName },
           },
         });
 
@@ -222,18 +211,6 @@ function AuthPage() {
           setConfirmationEmail(email);
           return;
         }
-
-        // Store partial user immediately
-        hydrateUser({
-          authenticated: true,
-          isOnboarded: false,
-          auth: {
-            id: data.user!.id,
-            email: data.user!.email ?? "",
-            fullName: (data.user!.user_metadata?.full_name as string) ?? null,
-            avatarUrl: (data.user!.user_metadata?.avatar_url as string) ?? null,
-          },
-        });
 
         router.push("/onboarding");
       } else {
@@ -267,9 +244,8 @@ function AuthPage() {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
 
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error("Failed to sync user session with backend database.");
-        }
 
         const res: CurrentUserResponse = await response.json();
 
@@ -277,9 +253,6 @@ function AuthPage() {
           setError("Authentication failed. Please log in again.");
           return;
         }
-
-        // NOTE: Hydrate Zustand (handles both partial & full user)
-        hydrateUser(res);
 
         if (!res.isOnboarded) {
           // console.log("[Auth] User authenticated but not onboarded in DB. Redirecting...");
@@ -353,40 +326,40 @@ function AuthPage() {
   }
 
   // Email confirmation sent screen
-  //   if (confirmationEmail) {
-  //     return (
-  //       <motion.div
-  //         {...slideUp}
-  //         className="w-full max-w-sm border border-border rounded-lg bg-card p-8 text-center"
-  //       >
-  //         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-  //           <Mail className="h-5 w-5 text-muted-foreground" />
-  //         </div>
-  //         <h1 className="font-soria text-2xl font-normal text-foreground">
-  //           Check your email
-  //         </h1>
-  //         <p className="mt-2 text-sm text-muted-foreground">
-  //           We sent a confirmation link to{" "}
-  //           <span className="font-medium text-foreground">
-  //             {confirmationEmail}
-  //           </span>
-  //         </p>
-  //         <p className="mt-1 text-sm text-muted-foreground">
-  //           Click the link in the email to activate your account, then sign in.
-  //         </p>
-  //         <Button
-  //           variant="outline"
-  //           className="mt-6 w-full"
-  //           onClick={() => {
-  //             setConfirmationEmail("");
-  //             switchMode("signin");
-  //           }}
-  //         >
-  //           Go to sign in
-  //         </Button>
-  //       </motion.div>
-  //     );
-  //   }
+  if (confirmationEmail) {
+    return (
+      <motion.div
+        {...slideUp}
+        className="w-full max-w-sm border border-border rounded-lg bg-card p-8 text-center"
+      >
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+          <Mail className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <h1 className="font-soria text-2xl font-normal text-foreground">
+          Check your email
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          We sent a confirmation link to{" "}
+          <span className="font-medium text-foreground">
+            {confirmationEmail}
+          </span>
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Click the link in the email to activate your account, then sign in.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-6 w-full"
+          onClick={() => {
+            setConfirmationEmail("");
+            switchMode("signin");
+          }}
+        >
+          Go to sign in
+        </Button>
+      </motion.div>
+    );
+  }
 
   // --- NEW FORGOT PASSWORD LOGIC ---
   function startCooldown() {
@@ -676,21 +649,6 @@ function AuthPage() {
                             >
                               <div className="grid gap-5 sm:grid-cols-2">
                                 <div>
-                                  <Field label="Business Name">
-                                    <IconInput
-                                      icon={<Briefcase className="h-4 w-4" />}
-                                      value={businessName}
-                                      onChange={(val) => {
-                                        setBusinessName(val);
-                                        if (fieldErrors.businessName)
-                                          setFieldErrors((p) => ({
-                                            ...p,
-                                            businessName: "",
-                                          }));
-                                      }}
-                                      placeholder="Acme Salon"
-                                    />
-                                  </Field>
                                   {fieldErrors.businessName && (
                                     <p className="mt-1 text-xs text-destructive">
                                       {fieldErrors.businessName}

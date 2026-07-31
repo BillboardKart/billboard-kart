@@ -1,4 +1,4 @@
-// api/src/modules/user/user.routes.ts
+// api/src/modules/auth/user.routes.ts
 import { UsersService } from "@/src/modules/auth/user.service";
 import { authPlugin } from "@/src/plugins/auth.plugin";
 import { Elysia, t } from "elysia";
@@ -23,7 +23,7 @@ export const userRoutes = new Elysia({ prefix: "/user" })
         fullName: t.String({ minLength: 2, maxLength: 150 }),
         primaryRole: t.Union([t.Literal("advertiser"), t.Literal("owner")]),
         businessName: t.String({ minLength: 2, maxLength: 200 }),
-        businessUrl: t.Optional(t.String({ format: "uri" })),
+        businessUrl: t.Optional(t.String({ format: "uri" })), // pass http from the form or okay to have null values
         phone: t.String({ minLength: 8, maxLength: 20 }),
         cityId: t.String({ format: "uuid" }),
       }),

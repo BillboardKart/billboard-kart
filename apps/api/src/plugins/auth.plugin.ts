@@ -2,26 +2,43 @@
 import { createClient } from "@supabase/supabase-js";
 import { Elysia } from "elysia";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_PUBLISHABLE_KEY!,
-);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 
-// Export as a factory function to preserve strict TS type inference across files
+if (!supabaseUrl) throw new Error("Missing SUPABASE_URL");
+if (!supabaseAnonKey) throw new Error("Missing SUPABASE_PUBLISHABLE_KEY");
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 export const authPlugin = (app: Elysia) =>
   app.derive(async ({ request }) => {
+    console.log("\n========== AUTH ==========");
+
     const authorization = request.headers.get("authorization");
 
-    if (!authorization?.startsWith("Bearer ")) {
+    console.log("Authorization Header:");
+    console.log(authorization);
+
+    if (!authorization) {
+      console.warn("[AUTH] Missing Authorization header.");
       return { authUser: null };
     }
 
-    const token = authorization.slice(7);
+    if (!authorization.startsWith("Bearer ")) {
+      console.warn("[AUTH] Invalid Authorization header.");
+      return { authUser: null };
+    }
+
+    const token = authorization.substring(7);
+    console.log("[AUTH] Token length:", token.length);
     const { data, error } = await supabase.auth.getUser(token);
 
-    if (error || !data.user) {
+    if (error) {
+      console.error("[AUTH] Supabase validation failed.");
+      console.error(error);
       return { authUser: null };
     }
 
+    console.log("[AUTH] User authenticated:", data.user.id);
     return { authUser: data.user };
   });

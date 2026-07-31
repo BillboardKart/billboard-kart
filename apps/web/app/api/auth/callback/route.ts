@@ -12,6 +12,10 @@ function getRedirectBase(request: Request): string {
 }
 
 export async function GET(request: Request) {
+  console.log("========== CALLBACK HIT ==========");
+  console.log(request.url);
+  console.log("========== CALLBACK HIT ==========");
+
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/browse";

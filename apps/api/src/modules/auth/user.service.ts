@@ -23,6 +23,7 @@ export class UsersService {
     authUser: User | null,
   ): Promise<CurrentUserResponse> {
     if (!authUser || !authUser.id) return { authenticated: false };
+    // console.log("[UsersService] authUser:", authUser?.id);
 
     const userId = authUser.id;
 
