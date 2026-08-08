@@ -21,11 +21,34 @@ export const userRoutes = new Elysia({ prefix: "/user" })
     {
       body: t.Object({
         fullName: t.String({ minLength: 2, maxLength: 150 }),
+
         primaryRole: t.Union([t.Literal("advertiser"), t.Literal("owner")]),
-        businessName: t.String({ minLength: 2, maxLength: 200 }),
-        businessUrl: t.Optional(t.String({ format: "uri" })), // pass http from the form or okay to have null values
-        phone: t.String({ minLength: 8, maxLength: 20 }),
-        cityId: t.String({ format: "uuid" }),
+
+        businessName: t.String({
+          minLength: 2,
+          maxLength: 200,
+        }),
+
+        businessUrl: t.Optional(
+          t.Nullable(
+            t.String({
+              format: "uri",
+            }),
+          ),
+        ),
+
+        phone: t.Optional(
+          t.Nullable(
+            t.String({
+              minLength: 8,
+              maxLength: 20,
+            }),
+          ),
+        ),
+
+        cityId: t.String({
+          format: "uuid",
+        }),
       }),
     },
   );
