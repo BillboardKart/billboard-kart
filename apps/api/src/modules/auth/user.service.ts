@@ -3,7 +3,7 @@ import type {
   CurrentUserResponse,
   OnboardUserRequest,
 } from "@/src/types/user.types";
-import { prisma, UserStatus } from "@repo/database";
+import { Prisma, prisma, UserStatus } from "@repo/database";
 import type { User } from "@supabase/supabase-js";
 
 export class UsersService {
@@ -23,7 +23,6 @@ export class UsersService {
     authUser: User | null,
   ): Promise<CurrentUserResponse> {
     if (!authUser || !authUser.id) return { authenticated: false };
-    // console.log("[UsersService] authUser:", authUser?.id);
 
     const userId = authUser.id;
 
@@ -77,8 +76,12 @@ export class UsersService {
     if (!authUser?.id) return { authenticated: false };
 
     const existing = await prisma.user.findUnique({
-      where: { id: authUser.id },
-      select: { id: true },
+      where: {
+        id: authUser.id,
+      },
+      select: {
+        id: true,
+      },
     });
 
     if (existing) throw new Error("User has already completed onboarding");
@@ -86,49 +89,57 @@ export class UsersService {
     const city = await prisma.$queryRaw<
       { id: string; lat: number; lng: number }[]
     >`
-        SELECT
-            id,
-            ST_Y(centroid::geometry) AS lat,
-            ST_X(centroid::geometry) AS lng
-        FROM cities
-        WHERE id = ${body.cityId}
-        LIMIT 1;
+      SELECT
+        id,
+        ST_Y(centroid::geometry) AS lat,
+        ST_X(centroid::geometry) AS lng
+      FROM cities
+      WHERE id = ${body.cityId}
+      LIMIT 1;
     `;
 
     if (city.length === 0) throw new Error("Invalid city selected.");
 
     const selectedCity = city[0]!;
 
-    const userData = {
+    const userData: Prisma.UserUncheckedCreateInput = {
       id: authUser.id,
       tenantId: this.userTenantId,
       email: authUser.email!,
-      fullName: body.fullName,
-      phone: body.phone,
-      businessName: body.businessName,
-      businessUrl: body.businessUrl,
+      fullName: body.fullName.trim(),
+      phone:
+        body.phone && body.phone.trim().length > 0 ? body.phone.trim() : null,
+      // Required column in database
+      businessName: body.businessName.trim(),
+      // Nullable column in database
+      businessUrl:
+        body.businessUrl && body.businessUrl.trim().length > 0
+          ? body.businessUrl.trim()
+          : null,
       primaryRole: body.primaryRole,
       status: UserStatus.active,
       passwordHash: await this.getInitialPasswordHash(),
       defaultCityId: selectedCity.id,
       defaultLat: selectedCity.lat,
       defaultLng: selectedCity.lng,
-      avatarUrl: authUser.user_metadata?.avatar_url || null,
+      avatarUrl: authUser.user_metadata?.avatar_url ?? null,
     };
 
-    await prisma.$transaction(async (tx) => tx.user.create({ data: userData }));
+    await prisma.$transaction(async (tx) => {
+      await tx.user.create({ data: userData });
+    });
 
     return {
       authenticated: true,
       isOnboarded: true,
       user: {
-        id: userData.id,
-        tenantId: this.userTenantId,
-        email: userData.email,
+        id: userData.id!,
+        tenantId: userData.tenantId!,
+        email: userData.email!,
         fullName: userData.fullName,
-        avatarUrl: userData.avatarUrl,
-        primaryRole: userData.primaryRole,
-        status: userData.status as string,
+        avatarUrl: userData.avatarUrl!,
+        primaryRole: userData.primaryRole!,
+        status: userData.status!,
       },
     };
   }

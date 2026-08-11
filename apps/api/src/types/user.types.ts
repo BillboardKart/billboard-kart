@@ -34,6 +34,6 @@ export interface OnboardUserRequest {
   primaryRole: UserRoleCode;
   businessName: string;
   businessUrl?: string | null;
-  phone: string;
+  phone?: string | null;
   cityId: string;
 }
