@@ -19,6 +19,7 @@ import {
   SlidersHorizontal,
   Upload,
   User,
+  ComputerIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -29,6 +30,7 @@ import { useRouter } from "next/navigation";
 const items = [
   { to: "/browse", label: "Browse", icon: MapPin },
   { to: "/rentals", label: "My Rentals", icon: FileText },
+  { to: "/owner/my-inventory", label: "My Inventory", icon: ComputerIcon },
   { to: "/upload", label: "Upload", icon: Upload },
   { to: "/account", label: "Account", icon: User },
 ] as const;
