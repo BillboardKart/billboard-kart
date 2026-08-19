@@ -243,7 +243,7 @@ export default function AddBillboardPage() {
                 monthlyRateError={errors.monthlyRate}
               />
 
-              <FormFooter onContinue={handleContinue} />
+              <FormFooter />
             </div>
           </>
         )}

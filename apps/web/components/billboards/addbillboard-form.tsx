@@ -484,11 +484,11 @@ export default function AddBillboardForm() {
           <Field label="Pin location on map">
             <div className="relative h-[256px] w-full rounded-[16px] overflow-hidden border border-[#e5e5e5]">
               <MapView
-                latitude={parseFloat(form.latitude) || 19.076}
-                longitude={parseFloat(form.longitude) || 72.8777}
-                onLocationChange={(lat, lng) => {
-                  updateField("latitude", lat.toFixed(4));
-                  updateField("longitude", lng.toFixed(4));
+                latitude={parseFloat(lat) || 19.076}
+                longitude={parseFloat(lng) || 72.8777}
+                onLocationChange={(latitude, longitude) => {
+                  setLat(latitude.toFixed(4));
+                  setLng(longitude.toFixed(4));
                 }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
