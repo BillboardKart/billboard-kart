@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 type FormatType = "static" | "digital";
 
 export default function FormatTypeCard({

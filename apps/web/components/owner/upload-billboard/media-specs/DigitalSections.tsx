@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import {
+  Input,
   SectionCard,
   SectionTitle,
-  Input,
   Select,
   Switch,
   SwitchRow,

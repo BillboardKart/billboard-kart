@@ -349,9 +349,11 @@ export default function AddBillboardForm() {
                     >
                       {t.label}
                     </span>
-                    <img
+                    <Image
                       src={t.img}
                       alt={t.label}
+                      fill
+                      unoptimized
                       className="h-full w-[55%] object-contain shrink-0"
                     />
                   </button>

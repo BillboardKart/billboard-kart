@@ -2,46 +2,52 @@
 
 export default function WizardFooter({
   step,
-  onBack,
-  onSkip,
-  onContinue,
+  onBackAction,
+  onSkipAction,
+  onContinueAction,
 }: {
   step: number;
-  onBack?: () => void;
-  onSkip?: () => void;
-  onContinue: () => void;
+  onBackAction?: () => void;
+  onSkipAction?: () => void;
+  onContinueAction: () => void;
 }) {
   return (
-    <div className="bg-white border-t border-[#e5e5e5] sticky bottom-0">
-      <div className="max-w-225 mx-auto px-8 py-4 flex items-center justify-between">
-        {onBack ? (
-          <button
-            onClick={onBack}
-            style={{ fontFamily: "Inter, sans-serif" }}
-            className="h-10 px-4 rounded-sm border border-[#e5e5e5] text-[14px] font-medium text-[#0a0a0a] bg-white cursor-pointer hover:bg-[#f5f5f5] transition-colors"
-          >
-            Back
-          </button>
-        ) : (
-          <div />
-        )}
-        <div className="flex gap-3">
-          {onSkip && (
+    <div className="bg-white border-t border-[#e5e5e5] sticky bottom-0 w-full">
+      <div className="max-w-255 mx-auto px-6 sm:px-8 py-4 flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          {onBackAction ? (
             <button
-              onClick={onSkip}
+              onClick={onBackAction}
               style={{ fontFamily: "Inter, sans-serif" }}
               className="h-10 px-4 rounded-sm border border-[#e5e5e5] text-[14px] font-medium text-[#0a0a0a] bg-white cursor-pointer hover:bg-[#f5f5f5] transition-colors"
             >
-              Skip for now
+              Back
             </button>
+          ) : (
+            <div />
           )}
-          <button
-            onClick={onContinue}
-            style={{ fontFamily: "Inter, sans-serif" }}
-            className="h-10 px-5 rounded-sm bg-[#f54900] text-[14px] font-medium text-white cursor-pointer hover:bg-[#d93f00] transition-colors"
-          >
-            {step === 1 ? "Continue to Media Specs" : "Save Media Specs"}
-          </button>
+          <div className="flex gap-3">
+            {onSkipAction && (
+              <button
+                onClick={onSkipAction}
+                style={{ fontFamily: "Inter, sans-serif" }}
+                className="h-10 px-4 rounded-sm border border-[#e5e5e5] text-[14px] font-medium text-[#0a0a0a] bg-white cursor-pointer hover:bg-[#f5f5f5] transition-colors"
+              >
+                Skip for now
+              </button>
+            )}
+            <button
+              onClick={onContinueAction}
+              style={{ fontFamily: "Inter, sans-serif" }}
+              className="h-10 px-5 rounded-sm bg-[#f54900] text-[14px] font-medium text-white cursor-pointer hover:bg-[#d93f00] transition-colors"
+            >
+              {step === 1
+                ? "Continue to Media Specs"
+                : step === 2
+                  ? "Continue to Documents"
+                  : "Save & Submit for Review"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

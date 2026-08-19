@@ -2,7 +2,14 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { MapContainer, Marker, TileLayer, ZoomControl, useMap, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  TileLayer,
+  ZoomControl,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
 import { useEffect } from "react";
 
 interface MapInnerProps {
@@ -12,7 +19,11 @@ interface MapInnerProps {
 }
 
 // Helper component to handle map click events for selecting locations
-function LocationPicker({ onLocationChange }: { onLocationChange: (lat: number, lng: number) => void }) {
+function LocationPicker({
+  onLocationChange,
+}: {
+  onLocationChange: (lat: number, lng: number) => void;
+}) {
   useMapEvents({
     click(e) {
       onLocationChange(e.latlng.lat, e.latlng.lng);
@@ -22,7 +33,13 @@ function LocationPicker({ onLocationChange }: { onLocationChange: (lat: number, 
 }
 
 // Helper component to dynamically re-center map when coordinates change externally
-function MapViewController({ latitude, longitude }: { latitude: number; longitude: number }) {
+function MapViewController({
+  latitude,
+  longitude,
+}: {
+  latitude: number;
+  longitude: number;
+}) {
   const map = useMap();
   useEffect(() => {
     if (!isNaN(latitude) && !isNaN(longitude)) {

@@ -78,7 +78,7 @@ export default function MyInventoryPage() {
     <>
       <TopNav />
       <div className="min-h-screen bg-white text-[#0a0a0a]">
-        <main className="mx-auto max-w-7xl px-12 py-8">
+        <main className="mx-auto w-full max-w-350 px-4 py-6 sm:px-6 lg:px-10">
           {/* Title row */}
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex flex-col gap-1">

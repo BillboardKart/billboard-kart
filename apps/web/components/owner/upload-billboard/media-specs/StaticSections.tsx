@@ -58,6 +58,8 @@ function PrintMaterial() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
 
+  if (selected) console.log(`${setSelected}`);
+
   return (
     <SectionCard>
       <div>

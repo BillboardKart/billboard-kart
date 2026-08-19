@@ -65,20 +65,21 @@ export function Field({
         <div className="flex items-center gap-2">
           <span className="text-[14px] leading-5 text-[#0a0a0a]">
             {label}
-            {required && <span className="text-[#e7000b]"> *</span>}
+            {/* Replaced && with ternary to satisfy strict ESLint rules */}
+            {required ? <span className="text-[#e7000b]"> *</span> : null}
           </span>
-          {optional && (
+          {optional ? (
             <span className="bg-[#f2f2f2] text-[#737373] text-[12px] rounded-[6px] px-2 py-1">
               Optional
             </span>
-          )}
+          ) : null}
         </div>
-        {hint && (
+        {hint ? (
           <p className="text-[14px] leading-[20px] text-[#737373]">{hint}</p>
-        )}
+        ) : null}
       </div>
       {children}
-      {error && <ErrorText message={error} />}
+      {error ? <ErrorText message={error} /> : null}
     </div>
   );
 }
@@ -108,10 +109,14 @@ export function TextInput({
           : "border-[#e5e5e5] focus-within:border-[#f54900]"
       }`}
     >
-      {prefix && <span className="text-[14px] text-[#666]">{prefix}</span>}
+      {prefix ? (
+        <span className="text-[14px] text-[#666]">{prefix}</span>
+      ) : null}
       <input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value);
+        }}
         placeholder={placeholder}
         className="flex-1 min-w-0 bg-transparent outline-none text-[14px] text-[#0a0a0a] placeholder:text-[#737373]"
       />
@@ -140,7 +145,9 @@ export function Segmented({
           <button
             key={opt}
             type="button"
-            onClick={() => onChange(opt)}
+            onClick={() => {
+              onChange(opt);
+            }}
             className={`h-[29px] px-[12px] rounded-[8px] border text-[14px] whitespace-nowrap transition-colors cursor-pointer disabled:pointer-events-none ${
               active
                 ? "bg-[#fff0ea] border-[#f54900] font-bold text-[#0a0a0a]"

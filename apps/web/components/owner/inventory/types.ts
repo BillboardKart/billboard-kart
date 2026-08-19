@@ -6,11 +6,7 @@ export function cn(...inputs: Parameters<typeof clsx>) {
 }
 
 export type Status =
-  | "Live"
-  | "Pending review"
-  | "Needs documents"
-  | "Draft"
-  | "Unavailable";
+  "Live" | "Pending review" | "Needs documents" | "Draft" | "Unavailable";
 
 export type Listing = {
   id: string;

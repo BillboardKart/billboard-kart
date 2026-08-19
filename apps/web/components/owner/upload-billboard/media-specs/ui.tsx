@@ -85,7 +85,11 @@ export function SectionSubtitle({ children }: { children: ReactNode }) {
   );
 }
 
-export type ChipProps = { label: string; active?: boolean; onClick?: () => void };
+export type ChipProps = {
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+};
 export function Chip({ label, active, onClick }: ChipProps) {
   return (
     <button
@@ -206,7 +210,8 @@ export function useMultiSelect(initial: string[]) {
   const toggle = (v: string) =>
     setSelected((prev) => {
       const n = new Set(prev);
-      n.has(v) ? n.delete(v) : n.add(v);
+      if (n.has(v)) n.delete(v);
+      else n.add(v);
       return n;
     });
   return { selected, toggle };

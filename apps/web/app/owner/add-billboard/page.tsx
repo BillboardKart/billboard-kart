@@ -21,9 +21,10 @@ import FormatTypeCard from "@/components/owner/upload-billboard/media-specs/Form
 import PhysicalSize from "@/components/owner/upload-billboard/media-specs/PhysicalSize";
 import StaticSections from "@/components/owner/upload-billboard/media-specs/StaticSections";
 import DigitalSections from "@/components/owner/upload-billboard/media-specs/DigitalSections";
+import DocumentVerificationStep from "@/components/owner/upload-billboard/doc-verification";
 
 type Errors = Record<string, string>;
-type Step = "details" | "mediaspecs";
+type Step = "details" | "mediaspecs" | "docverification";
 type FormatType = "static" | "digital";
 
 export default function AddBillboardPage() {
@@ -124,7 +125,12 @@ export default function AddBillboardPage() {
   };
 
   const handleSaveMediaSpecs = () => {
-    window.alert("Media specs saved — billboard published!");
+    setStep("docverification");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSaveDocVerification = () => {
+    window.alert("Documents submitted for review — billboard published!");
   };
 
   return (
@@ -136,184 +142,204 @@ export default function AddBillboardPage() {
 
         {showForm && (
           <>
-            {step === "details" && (
-              <StepHeader step={1} />
-            )}
+            {step === "details" && <StepHeader step={1} />}
             {step === "mediaspecs" && (
-              <StepHeader step={2} onBack={() => setStep("details")} />
+              <StepHeader step={2} onBackAction={() => setStep("details")} />
+            )}
+            {step === "docverification" && (
+              <StepHeader step={3} onBackAction={() => setStep("mediaspecs")} />
             )}
 
-            {/* Step 1: Billboard Details */}
-            {step === "details" && (
-              <div className="w-full max-w-255 px-6 sm:px-8 py-8 flex flex-col gap-8">
-                {/* Location block */}
-                <div className="flex flex-col gap-6">
-                  <Field label="Billboard Name" required error={errors.name}>
-                    <div data-error={!!errors.name}>
-                      <TextInput
-                        value={form.billboardName}
-                        onChange={(v) => {
-                          updateField("billboardName", v);
-                          clearError("name");
-                        }}
-                        placeholder="e.g. MG Road Digital Hoarding"
-                        invalid={!!errors.name}
-                      />
+            <div className="w-full max-w-255 px-6 sm:px-8 py-8 flex flex-col gap-8 flex-1">
+              {/* Step 1: Billboard Details */}
+              {step === "details" && (
+                <>
+                  {/* Location block */}
+                  <div className="flex flex-col gap-6">
+                    <Field label="Billboard Name" required error={errors.name}>
+                      <div data-error={!!errors.name}>
+                        <TextInput
+                          value={form.billboardName}
+                          onChange={(v) => {
+                            updateField("billboardName", v);
+                            clearError("name");
+                          }}
+                          placeholder="e.g. MG Road Digital Hoarding"
+                          invalid={!!errors.name}
+                        />
+                      </div>
+                    </Field>
+
+                    <BillboardTypeSelector
+                      value={type}
+                      onChange={(label) => {
+                        setType(label);
+                        updateField("billboardType", label);
+                        clearError("type");
+                      }}
+                      error={errors.type}
+                    />
+
+                    <CitySelector
+                      value={form.city}
+                      onChange={(v) => {
+                        updateField("city", v);
+                        clearError("city");
+                      }}
+                      chip={cityChip}
+                      onChipChange={setCityChip}
+                      error={errors.city}
+                    />
+
+                    <LocationFields
+                      form={form}
+                      updateField={updateField}
+                      errors={errors}
+                      mapsLink={mapsLink}
+                      setMapsLink={setMapsLink}
+                    />
+                  </div>
+                  <DimensionsSection
+                    width={form.width}
+                    height={form.height}
+                    onWidthChange={(v) => {
+                      updateField("width", v);
+                      clearError("width");
+                    }}
+                    onHeightChange={(v) => {
+                      updateField("height", v);
+                      clearError("height");
+                    }}
+                    widthError={errors.width}
+                    heightError={errors.height}
+                  />
+                  <IlluminationTrafficSide
+                    illumination={form.illumination}
+                    onIlluminationChange={(v) =>
+                      updateField("illumination", v as "Yes" | "No")
+                    }
+                    trafficSide={form.trafficSide}
+                    onTrafficSideChange={(v) =>
+                      updateField(
+                        "trafficSide",
+                        v as "Left" | "Right" | "Not Applicable",
+                      )
+                    }
+                  />
+                  <FacingDirectionSection value={facing} onChange={setFacing} />
+                  <RoadTypeSection value={roadType} onChange={setRoadType} />
+                  <TrafficEstimateSection
+                    dailyTraffic={dailyTraffic}
+                    onDailyTrafficChange={setDailyTraffic}
+                    peakHours={peakHours}
+                    onPeakHoursChange={setPeakHours}
+                    mix={mix}
+                    onMixChange={setMix}
+                  />
+                  <VisibilityNotesSection
+                    value={form.visibilityNotes}
+                    onChange={(v) => updateField("visibilityNotes", v)}
+                  />
+                  <PhotoUploadSection
+                    photos={form.photos}
+                    onRemove={removePhoto}
+                    error={errors.photos}
+                    fileRef={fileRef}
+                    onAddClick={() => fileRef.current?.click()}
+                    onFilesChange={addPhotos}
+                  />
+                  <PricingSection
+                    monthlyRate={form.monthlyRate}
+                    onMonthlyRateChange={(v) => {
+                      updateField("monthlyRate", v);
+                      clearError("monthlyRate");
+                    }}
+                    isAvailable={form.isAvailable}
+                    onToggleAvailability={() =>
+                      updateField("isAvailable", !form.isAvailable)
+                    }
+                    minDuration={minDuration}
+                    onMinDurationChange={setMinDuration}
+                    printingCost={printingCost}
+                    onPrintingCostChange={setPrintingCost}
+                    monthlyRateError={errors.monthlyRate}
+                  />
+                </>
+              )}
+
+              {/* Step 2: Media Specs */}
+              {step === "mediaspecs" && (
+                <>
+                  <div className="flex flex-col gap-[8px]">
+                    <h1
+                      style={{ fontFamily: "Inter, sans-serif" }}
+                      className="text-[30px] text-[#0a0a0a] tracking-[-0.75px] leading-[36px]"
+                    >
+                      Media specifications
+                    </h1>
+                    <p
+                      style={{ fontFamily: "Inter, sans-serif" }}
+                      className="text-[16px] text-[#737373] leading-[24px]"
+                    >
+                      Tell advertisers about your billboard&apos;s technical
+                      details.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-[24px]">
+                    <FormatTypeCard format={format} onChange={setFormat} />
+                    <PhysicalSize />
+
+                    <div
+                      style={{
+                        display: format === "static" ? "flex" : "none",
+                        flexDirection: "column",
+                        gap: "24px",
+                      }}
+                    >
+                      <StaticSections />
                     </div>
-                  </Field>
-
-                  <BillboardTypeSelector
-                    value={type}
-                    onChange={(label) => {
-                      setType(label);
-                      updateField("billboardType", label);
-                      clearError("type");
-                    }}
-                    error={errors.type}
-                  />
-
-                  <CitySelector
-                    value={form.city}
-                    onChange={(v) => {
-                      updateField("city", v);
-                      clearError("city");
-                    }}
-                    chip={cityChip}
-                    onChipChange={setCityChip}
-                    error={errors.city}
-                  />
-
-                  <LocationFields
-                    form={form}
-                    updateField={updateField}
-                    errors={errors}
-                    mapsLink={mapsLink}
-                    setMapsLink={setMapsLink}
-                  />
-                </div>
-                <DimensionsSection
-                  width={form.width}
-                  height={form.height}
-                  onWidthChange={(v) => {
-                    updateField("width", v);
-                    clearError("width");
-                  }}
-                  onHeightChange={(v) => {
-                    updateField("height", v);
-                    clearError("height");
-                  }}
-                  widthError={errors.width}
-                  heightError={errors.height}
-                />
-                <IlluminationTrafficSide
-                  illumination={form.illumination}
-                  onIlluminationChange={(v) =>
-                    updateField("illumination", v as "Yes" | "No")
-                  }
-                  trafficSide={form.trafficSide}
-                  onTrafficSideChange={(v) =>
-                    updateField(
-                      "trafficSide",
-                      v as "Left" | "Right" | "Not Applicable",
-                    )
-                  }
-                />
-                <FacingDirectionSection value={facing} onChange={setFacing} />
-                <RoadTypeSection value={roadType} onChange={setRoadType} />
-                <TrafficEstimateSection
-                  dailyTraffic={dailyTraffic}
-                  onDailyTrafficChange={setDailyTraffic}
-                  peakHours={peakHours}
-                  onPeakHoursChange={setPeakHours}
-                  mix={mix}
-                  onMixChange={setMix}
-                />
-                <VisibilityNotesSection
-                  value={form.visibilityNotes}
-                  onChange={(v) => updateField("visibilityNotes", v)}
-                />
-                <PhotoUploadSection
-                  photos={form.photos}
-                  onRemove={removePhoto}
-                  error={errors.photos}
-                  fileRef={fileRef}
-                  onAddClick={() => fileRef.current?.click()}
-                  onFilesChange={addPhotos}
-                />
-                <PricingSection
-                  monthlyRate={form.monthlyRate}
-                  onMonthlyRateChange={(v) => {
-                    updateField("monthlyRate", v);
-                    clearError("monthlyRate");
-                  }}
-                  isAvailable={form.isAvailable}
-                  onToggleAvailability={() =>
-                    updateField("isAvailable", !form.isAvailable)
-                  }
-                  minDuration={minDuration}
-                  onMinDurationChange={setMinDuration}
-                  printingCost={printingCost}
-                  onPrintingCostChange={setPrintingCost}
-                  monthlyRateError={errors.monthlyRate}
-                />
-                <WizardFooter
-                  step={1}
-                  onSkip={() => window.alert("Saved as draft")}
-                  onContinue={handleContinueToMediaSpecs}
-                />
-              </div>
-            )}
-
-            {/* Step 2: Media Specs */}
-            {step === "mediaspecs" && (
-              <div className="flex-1 max-w-[900px] mx-auto w-full px-[32px] py-[32px] flex flex-col gap-[32px]">
-                <div className="flex flex-col gap-[8px]">
-                  <h1
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                    className="text-[30px] text-[#0a0a0a] tracking-[-0.75px] leading-[36px]"
-                  >
-                    Media specifications
-                  </h1>
-                  <p
-                    style={{ fontFamily: "Inter, sans-serif" }}
-                    className="text-[16px] text-[#737373] leading-[24px]"
-                  >
-                    Tell advertisers about your billboard&apos;s technical details.
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-[24px]">
-                  <FormatTypeCard format={format} onChange={setFormat} />
-                  <PhysicalSize />
-
-                  <div
-                    style={{
-                      display: format === "static" ? "flex" : "none",
-                      flexDirection: "column",
-                      gap: "24px",
-                    }}
-                  >
-                    <StaticSections />
+                    <div
+                      style={{
+                        display: format === "digital" ? "flex" : "none",
+                        flexDirection: "column",
+                        gap: "24px",
+                      }}
+                    >
+                      <DigitalSections />
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      display: format === "digital" ? "flex" : "none",
-                      flexDirection: "column",
-                      gap: "24px",
-                    }}
-                  >
-                    <DigitalSections />
-                  </div>
-                </div>
+                </>
+              )}
 
-                <WizardFooter
-                  step={2}
-                  onBack={() => setStep("details")}
-                  onSkip={() => window.alert("Skipped media specs")}
-                  onContinue={handleSaveMediaSpecs}
-                />
-              </div>
-            )}
+              {/* Step 3: Document Verification */}
+              {step === "docverification" && <DocumentVerificationStep />}
+            </div>
+
+            <WizardFooter
+              step={step === "details" ? 1 : step === "mediaspecs" ? 2 : 3}
+              onBackAction={
+                step === "mediaspecs"
+                  ? () => setStep("details")
+                  : step === "docverification"
+                    ? () => setStep("mediaspecs")
+                    : undefined
+              }
+              onSkipAction={
+                step === "details"
+                  ? () => window.alert("Saved as draft")
+                  : step === "mediaspecs"
+                    ? () => window.alert("Skipped media specs")
+                    : () => window.alert("Skipped document verification")
+              }
+              onContinueAction={
+                step === "details"
+                  ? handleContinueToMediaSpecs
+                  : step === "mediaspecs"
+                    ? handleSaveMediaSpecs
+                    : handleSaveDocVerification
+              }
+            />
           </>
         )}
       </div>
