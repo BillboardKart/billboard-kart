@@ -41,3 +41,4 @@ devplan.md
 # extras
 # packages/database/src/generated
 packages/database/src/seed.ts
+.opencode/

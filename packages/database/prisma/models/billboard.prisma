@@ -1,24 +1,20 @@
-// BILLBOARD TAXONOMY (extensible — add rows, not columns)
-
 model BillboardCategory {
-  id        String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code      String @unique
-  name      String
-  sortOrder Int    @default(0) @map("sort_order") @db.SmallInt
-
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code           String          @unique
+  name           String
+  sortOrder      Int             @default(0) @map("sort_order") @db.SmallInt
   billboardTypes BillboardType[]
 
   @@map("billboard_categories")
 }
 
 model BillboardType {
-  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  categoryId   String  @map("category_id") @db.Uuid
-  code         String  @unique
-  name         String
-  displayBadge String  @map("display_badge")
-  isActive     Boolean @default(true) @map("is_active")
-
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  categoryId       String            @map("category_id") @db.Uuid
+  code             String            @unique
+  name             String
+  displayBadge     String            @map("display_badge")
+  isActive         Boolean           @default(true) @map("is_active")
   category         BillboardCategory @relation(fields: [categoryId], references: [id])
   billboards       Billboard[]
   platformFeeRules PlatformFeeRule[]
@@ -27,62 +23,53 @@ model BillboardType {
 }
 
 model Tag {
-  id    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  slug  String @unique
-  label String
-
+  id            String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug          String         @unique
+  label         String
   billboardTags BillboardTag[]
 
   @@map("tags")
 }
 
-// =====================================================================================
-// 4. BILLBOARDS (CORE INVENTORY)
-// =====================================================================================
-
 model Billboard {
-  id              String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId        String? @map("tenant_id") @db.Uuid
-  ownerId         String  @map("owner_id") @db.Uuid
-  billboardTypeId String  @map("billboard_type_id") @db.Uuid
-  addressId       String  @map("address_id") @db.Uuid
-
-  name        String
-  slug        String  @unique
-  description String?
-
-  widthFt  Decimal? @map("width_ft") @db.Decimal(6, 2)
-  heightFt Decimal? @map("height_ft") @db.Decimal(6, 2)
-
-  // GENERATED ALWAYS AS (width_ft || '×' || height_ft || ' ft') STORED
-  // Created by post_migration.sql — read-only, not writable via Prisma Client.
-  sizeDisplay Unsupported("text")? @map("size_display")
-
-  visibilityLabel String? @map("visibility_label")
-  dailyReach      Int?    @map("daily_reach")
-
-  lifecycleStatus BillboardLifecycleStatus @default(draft) @map("lifecycle_status")
-  quickStatus     BillboardQuickStatus     @default(available) @map("quick_status")
-
-  ratingAvg   Decimal @default(0) @map("rating_avg") @db.Decimal(2, 1)
-  ratingCount Int     @default(0) @map("rating_count")
-
-  // Schema-less bucket for type-specific specs so new billboard types never need a migration.
-  attributes Json @default("{}")
-
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamptz
-  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
-
-  tenant        Tenant?       @relation(fields: [tenantId], references: [id])
-  owner         User          @relation("BillboardOwner", fields: [ownerId], references: [id])
-  billboardType BillboardType @relation(fields: [billboardTypeId], references: [id])
-  address       Address       @relation(fields: [addressId], references: [id])
-
-  billboardTags         BillboardTag[]
-  media                 BillboardMedia[]
+  id                    String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId              String?                   @map("tenant_id") @db.Uuid
+  ownerId               String                    @map("owner_id") @db.Uuid
+  billboardTypeId       String                    @map("billboard_type_id") @db.Uuid
+  addressId             String                    @map("address_id") @db.Uuid
+  name                  String
+  slug                  String                    @unique
+  description           String?
+  widthFt               Decimal?                  @map("width_ft") @db.Decimal(6, 2)
+  heightFt              Decimal?                  @map("height_ft") @db.Decimal(6, 2)
+  sizeDisplay           String?                   @map("size_display")
+  visibilityLabel       String?                   @map("visibility_label")
+  dailyReach            Int?                      @map("daily_reach")
+  lifecycleStatus       BillboardLifecycleStatus  @default(draft) @map("lifecycle_status")
+  quickStatus           BillboardQuickStatus      @default(available) @map("quick_status")
+  ratingAvg             Decimal                   @default(0) @map("rating_avg") @db.Decimal(2, 1)
+  ratingCount           Int                       @default(0) @map("rating_count")
+  attributes            Json                      @default("{}")
+  createdAt             DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime                  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  deletedAt             DateTime?                 @map("deleted_at") @db.Timestamptz(6)
+  illumination          Boolean                   @default(false)
+  trafficSide           String?                   @map("traffic_side")
+  facingDirection       String?                   @map("facing_direction")
+  roadType              String?                   @map("road_type")
+  peakHours             String?                   @map("peak_hours")
+  vehiclePedestrianMix  String?                   @map("vehicle_pedestrian_mix")
+  minBookingDuration    String                    @default("1 month") @map("min_booking_duration")
+  printingCost          Decimal?                  @map("printing_cost") @db.Decimal(12, 2)
+  propertyOwnerDetails  String?                   @map("property_owner_details")
   designGuidelines      BillboardDesignGuideline?
+  media                 BillboardMedia[]
   pricing               BillboardPricing[]
+  billboardTags         BillboardTag[]
+  address               Address                   @relation(fields: [addressId], references: [id])
+  billboardType         BillboardType             @relation(fields: [billboardTypeId], references: [id])
+  owner                 User                      @relation("BillboardOwner", fields: [ownerId], references: [id])
+  tenant                Tenant?                   @relation(fields: [tenantId], references: [id])
   bookingItems          BookingItem[]
   reviews               Review[]
   verificationDocuments VerificationDocument[]
@@ -91,16 +78,16 @@ model Billboard {
   @@index([billboardTypeId])
   @@index([lifecycleStatus, quickStatus])
   @@index([addressId])
-  @@index([createdAt, id]) // keyset pagination — see post_migration.sql for DESC ordering / GIN(attributes)
+  @@index([createdAt, id]) // keyset pagination
+  @@index([attributes(ops: JsonbPathOps)], type: Gin)
   @@map("billboards")
 }
 
 model BillboardTag {
-  billboardId String @map("billboard_id") @db.Uuid
-  tagId       String @map("tag_id") @db.Uuid
-
-  billboard Billboard @relation(fields: [billboardId], references: [id], onDelete: Cascade)
-  tag       Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  billboardId String    @map("billboard_id") @db.Uuid
+  tagId       String    @map("tag_id") @db.Uuid
+  billboard   Billboard @relation(fields: [billboardId], references: [id], onDelete: Cascade)
+  tag         Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([billboardId, tagId])
   @@map("billboard_tags")
@@ -113,25 +100,22 @@ model BillboardMedia {
   fileType    MediaFileType @default(image) @map("file_type")
   isPrimary   Boolean       @default(false) @map("is_primary")
   sortOrder   Int           @default(0) @map("sort_order") @db.SmallInt
-  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  billboard   Billboard     @relation(fields: [billboardId], references: [id], onDelete: Cascade)
 
-  billboard Billboard @relation(fields: [billboardId], references: [id], onDelete: Cascade)
-
-  // Partial unique index (one primary image per billboard) lives in post_migration.sql —
-  // `WHERE is_primary` predicates aren't expressible in Prisma's schema language.
+  @@unique([billboardId, isPrimary], where: raw("is_primary = true"))
   @@index([billboardId])
   @@map("billboard_media")
 }
 
 model BillboardDesignGuideline {
-  billboardId      String   @id @map("billboard_id") @db.Uuid
+  billboardId      String    @id @map("billboard_id") @db.Uuid
   resolution       String?
-  aspectRatio      String?  @map("aspect_ratio")
-  maxFileSizeMb    Int      @default(50) @map("max_file_size_mb")
-  allowedFileTypes String[] @default(["jpg", "png", "mp4"]) @map("allowed_file_types")
+  aspectRatio      String?   @map("aspect_ratio")
+  maxFileSizeMb    Int       @default(50) @map("max_file_size_mb")
+  allowedFileTypes String[]  @default(["jpg", "png", "mp4"]) @map("allowed_file_types")
   notes            String?
-
-  billboard Billboard @relation(fields: [billboardId], references: [id], onDelete: Cascade)
+  billboard        Billboard @relation(fields: [billboardId], references: [id], onDelete: Cascade)
 
   @@map("billboard_design_guidelines")
 }

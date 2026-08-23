@@ -270,23 +270,23 @@ export default function AddBillboardPage() {
               {/* Step 2: Media Specs */}
               {step === "mediaspecs" && (
                 <>
-                  <div className="flex flex-col gap-[8px]">
+                  <div className="flex flex-col gap-2">
                     <h1
                       style={{ fontFamily: "Inter, sans-serif" }}
-                      className="text-[30px] text-[#0a0a0a] tracking-[-0.75px] leading-[36px]"
+                      className="text-[30px] text-[#0a0a0a] tracking-[-0.75px] leading-9"
                     >
                       Media specifications
                     </h1>
                     <p
                       style={{ fontFamily: "Inter, sans-serif" }}
-                      className="text-[16px] text-[#737373] leading-[24px]"
+                      className="text-[16px] text-[#737373] leading-6"
                     >
                       Tell advertisers about your billboard&apos;s technical
                       details.
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-[24px]">
+                  <div className="flex flex-col gap-6">
                     <FormatTypeCard format={format} onChange={setFormat} />
                     <PhysicalSize />
 
