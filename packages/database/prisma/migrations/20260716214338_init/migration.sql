@@ -418,6 +418,8 @@ CREATE TABLE "users" (
     "phone_verified_at" TIMESTAMPTZ,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "business_name" TEXT NOT NULL,
+    "business_url" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
