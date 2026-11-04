@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { TopNav } from "@/components/app/TopNav";
-import { BillboardFormState } from "@/types/owner";
+import { BillboardFormState, emptyBillboardForm } from "@/types/owner";
 import UploadBIllboardSelector from "@/components/owner/upload-billboard/add-billboard";
 import { Field, TextInput } from "@/components/owner/upload-billboard/ui";
 import BillboardTypeSelector from "@/components/owner/upload-billboard/BillboardTypeSelector";
@@ -22,34 +22,10 @@ type Errors = Record<string, string>;
 
 export default function AddBillboardPage() {
   const [form, setForm] = useState<BillboardFormState>({
-    billboardName: "",
-    city: "",
-    area: "",
-    landmark: "",
-    latitude: "19.0760",
-    longitude: "72.8777",
-    billboardType: "",
-    width: "",
-    height: "",
-    illumination: "Yes",
-    trafficSide: "Left",
-    visibilityNotes: "",
-    photos: [],
-    monthlyRate: "",
-    isAvailable: true,
+    ...emptyBillboardForm,
   });
 
   const [errors, setErrors] = useState<Errors>({});
-  const [cityChip, setCityChip] = useState("");
-  const [mapsLink, setMapsLink] = useState("");
-  const [type, setType] = useState("");
-  const [facing, setFacing] = useState("North");
-  const [roadType, setRoadType] = useState("Highway");
-  const [dailyTraffic, setDailyTraffic] = useState("");
-  const [peakHours, setPeakHours] = useState("");
-  const [mix, setMix] = useState("");
-  const [minDuration, setMinDuration] = useState("1 month");
-  const [printingCost, setPrintingCost] = useState("");
   const [showForm, setShowForm] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -71,47 +47,23 @@ export default function AddBillboardPage() {
 
   const addPhotos = (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const urls = Array.from(files).map((f) => URL.createObjectURL(f));
+    const newFiles = Array.from(files);
+    const urls = newFiles.map((f) => URL.createObjectURL(f));
     updateField("photos", [...form.photos, ...urls]);
+    updateField("photoFiles", [...form.photoFiles, ...newFiles]);
     clearError("photos");
   };
 
-  const removePhoto = (idx: number) =>
+  const removePhoto = (idx: number) => {
     updateField(
       "photos",
       form.photos.filter((_, i) => i !== idx),
     );
-
-  // const validate = (): Errors => {
-  //   const next: Errors = {};
-  //   if (!form.billboardName.trim()) next.name = "Billboard name is required.";
-  //   if (!form.city.trim() && !cityChip)
-  //     next.city = "Please select or search a city.";
-  //   if (!form.area.trim()) next.area = "Area / Locality is required.";
-  //   if (!form.landmark.trim())
-  //     next.landmark = "Landmark is required to help renters locate the site.";
-  //   if (!type) next.type = "Select a billboard type.";
-  //   if (!form.width.trim()) next.width = "Width is required.";
-  //   if (!form.height.trim()) next.height = "Height is required.";
-  //   if (form.photos.length < 3) {
-  //     const remaining = 3 - form.photos.length;
-  //     next.photos = `Add ${remaining} more photo${remaining > 1 ? "s" : ""} to continue.`;
-  //   }
-  //   if (!form.monthlyRate.trim())
-  //     next.monthlyRate = "Monthly rate is required.";
-  //   return next;
-  // };
-
-  // const handleContinue = () => {
-  //   const next = validate();
-  //   setErrors(next);
-  //   if (Object.keys(next).length > 0) {
-  //     const first = document.querySelector<HTMLElement>("[data-error='true']");
-  //     first?.scrollIntoView({ behavior: "smooth", block: "center" });
-  //     return;
-  //   }
-  //   window.alert("Step 1 complete — continuing to Media Specs.");
-  // };
+    updateField(
+      "photoFiles",
+      form.photoFiles.filter((_, i) => i !== idx),
+    );
+  };
 
   return (
     <>
@@ -124,7 +76,6 @@ export default function AddBillboardPage() {
         {showForm && (
           <>
             <div className="w-full max-w-255 px-6 sm:px-8 py-8 flex flex-col gap-8">
-              {/* Location block */}
               <div className="flex flex-col gap-6">
                 <Field label="Billboard Name" required error={errors.name}>
                   <div data-error={!!errors.name}>
@@ -141,9 +92,8 @@ export default function AddBillboardPage() {
                 </Field>
 
                 <BillboardTypeSelector
-                  value={type}
+                  value={form.billboardType}
                   onChange={(label) => {
-                    setType(label);
                     updateField("billboardType", label);
                     clearError("type");
                   }}
@@ -156,8 +106,8 @@ export default function AddBillboardPage() {
                     updateField("city", v);
                     clearError("city");
                   }}
-                  chip={cityChip}
-                  onChipChange={setCityChip}
+                  chip={form.cityChip}
+                  onChipChange={(chip) => updateField("cityChip", chip)}
                   error={errors.city}
                 />
 
@@ -165,8 +115,6 @@ export default function AddBillboardPage() {
                   form={form}
                   updateField={updateField}
                   errors={errors}
-                  mapsLink={mapsLink}
-                  setMapsLink={setMapsLink}
                 />
               </div>
 
@@ -199,17 +147,23 @@ export default function AddBillboardPage() {
                 }
               />
 
-              <FacingDirectionSection value={facing} onChange={setFacing} />
+              <FacingDirectionSection
+                value={form.facingDirection}
+                onChange={(v) => updateField("facingDirection", v)}
+              />
 
-              <RoadTypeSection value={roadType} onChange={setRoadType} />
+              <RoadTypeSection
+                value={form.roadType}
+                onChange={(v) => updateField("roadType", v)}
+              />
 
               <TrafficEstimateSection
-                dailyTraffic={dailyTraffic}
-                onDailyTrafficChange={setDailyTraffic}
-                peakHours={peakHours}
-                onPeakHoursChange={setPeakHours}
-                mix={mix}
-                onMixChange={setMix}
+                dailyTraffic={form.dailyTraffic}
+                onDailyTrafficChange={(v) => updateField("dailyTraffic", v)}
+                peakHours={form.peakHours}
+                onPeakHoursChange={(v) => updateField("peakHours", v)}
+                mix={form.vehiclePedestrianMix}
+                onMixChange={(v) => updateField("vehiclePedestrianMix", v)}
               />
 
               <VisibilityNotesSection
@@ -236,10 +190,12 @@ export default function AddBillboardPage() {
                 onToggleAvailability={() =>
                   updateField("isAvailable", !form.isAvailable)
                 }
-                minDuration={minDuration}
-                onMinDurationChange={setMinDuration}
-                printingCost={printingCost}
-                onPrintingCostChange={setPrintingCost}
+                minDuration={form.minBookingDuration}
+                onMinDurationChange={(v) =>
+                  updateField("minBookingDuration", v)
+                }
+                printingCost={form.printingCost}
+                onPrintingCostChange={(v) => updateField("printingCost", v)}
                 monthlyRateError={errors.monthlyRate}
               />
 

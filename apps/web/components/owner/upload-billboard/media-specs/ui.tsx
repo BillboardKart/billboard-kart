@@ -6,11 +6,13 @@ export function Input({
   label,
   placeholder,
   value,
+  onChange,
   optional,
 }: {
   label: string;
   placeholder?: string;
   value?: string;
+  onChange?: (v: string) => void;
   optional?: boolean;
 }) {
   return (
@@ -18,29 +20,28 @@ export function Input({
       <div className="flex items-center gap-[6px]">
         <span
           style={{ fontFamily: "Inter, sans-serif" }}
-          className="text-[12px] text-[#525252] leading-[16px]"
+          className="text-xs text-[#525252] leading-4"
         >
           {label}
         </span>
         {optional && (
           <span
-            className="bg-[#f2f2f2] text-[#737373] text-[12px] px-[6px] py-[2px] rounded-[6px]"
+            className="bg-[#f2f2f2] text-[#737373] text-xs px-1.5 py-0.5 rounded-md"
             style={{ fontFamily: "Inter, sans-serif" }}
           >
             Optional
           </span>
         )}
       </div>
-      <div className="bg-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)] h-[48px] rounded-[8px] relative">
-        <div className="absolute inset-0 border border-[#d4d4d4] rounded-[8px] pointer-events-none" />
-        <div className="flex items-center h-full px-[16px]">
-          <span
-            style={{ fontFamily: "Inter, sans-serif" }}
-            className="text-[14px] text-[#737373] flex-1"
-          >
-            {value || placeholder || ""}
-          </span>
-        </div>
+      <div className="bg-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)] h-12 rounded-lg relative">
+        <div className="absolute inset-0 border border-[#d4d4d4] rounded-lg pointer-events-none" />
+        <input
+          type="text"
+          value={value ?? ""}
+          onChange={(e) => onChange?.(e.target.value)}
+          placeholder={placeholder}
+          className="relative z-10 flex items-center h-full px-4 w-full bg-transparent text-sm text-[#0a0a0a] font-['Inter',sans-serif] outline-none placeholder:text-[#737373]"
+        />
       </div>
     </div>
   );
@@ -166,24 +167,39 @@ export function SwitchRow({
   );
 }
 
-export function Select({ label, value }: { label: string; value: string }) {
+export function Select({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options?: string[];
+  onChange?: (v: string) => void;
+}) {
   return (
     <div className="flex flex-col gap-[6px] flex-1 min-w-0">
       <span
         style={{ fontFamily: "Inter, sans-serif" }}
-        className="text-[12px] text-[#525252] leading-[16px]"
+        className="text-xs text-[#525252] leading-4"
       >
         {label}
       </span>
-      <div className="bg-[#fafafa] h-[48px] rounded-[8px] relative">
-        <div className="absolute inset-0 border border-[#d4d4d4] rounded-[8px] pointer-events-none" />
-        <div className="flex items-center justify-between h-full px-[13px]">
-          <span
-            style={{ fontFamily: "Inter, sans-serif" }}
-            className="text-[14px] text-[#0a0a0a]"
-          >
-            {value}
-          </span>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="relative z-10 bg-[#fafafa] h-12 rounded-lg w-full appearance-none border border-[#d4d4d4] pl-[13px] pr-10 text-sm text-[#0a0a0a] font-['Inter',sans-serif] outline-none cursor-pointer"
+        >
+          {options?.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+          {!options && <option value={value}>{value}</option>}
+        </select>
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
           <svg
             width="16"
             height="16"

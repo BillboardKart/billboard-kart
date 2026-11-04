@@ -11,6 +11,7 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import { useEffect } from "react";
+import { CARTO_ATTRIBUTION, getCartoTileUrl } from "@/lib/map";
 
 interface MapInnerProps {
   latitude: number;
@@ -102,10 +103,7 @@ export default function MapInner({
         zIndex: 0,
       }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-      />
+      <TileLayer attribution={CARTO_ATTRIBUTION} url={getCartoTileUrl()} />
       <ZoomControl position="topright" />
       <LocationPicker onLocationChange={onLocationChange} />
       <MapViewController latitude={latitude} longitude={longitude} />

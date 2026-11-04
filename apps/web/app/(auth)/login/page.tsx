@@ -274,11 +274,21 @@ function AuthPage() {
       }
     } catch (err) {
       console.error("[Auth] Unexpected error:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong. Please try again.",
-      );
+      const message = err instanceof Error ? err.message : "";
+      if (
+        message.includes("Failed to fetch") ||
+        (err as { name?: string })?.name === "AuthRetryableFetchError"
+      ) {
+        setError(
+          "Cannot reach the auth server. Check your connection and that NEXT_PUBLIC_SUPABASE_URL is correct and the Supabase project is active, then try again.",
+        );
+      } else {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong. Please try again.",
+        );
+      }
     } finally {
       setIsLoading(false);
     }

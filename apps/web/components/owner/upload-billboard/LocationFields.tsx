@@ -8,8 +8,6 @@ export default function LocationFields({
   form,
   updateField,
   errors,
-  mapsLink,
-  setMapsLink,
 }: {
   form: BillboardFormState;
   updateField: <K extends keyof BillboardFormState>(
@@ -17,8 +15,6 @@ export default function LocationFields({
     value: BillboardFormState[K],
   ) => void;
   errors: Record<string, string>;
-  mapsLink: string;
-  setMapsLink: (v: string) => void;
 }) {
   return (
     <>
@@ -80,8 +76,8 @@ export default function LocationFields({
         </div>
         <Field label="Paste Google Maps link">
           <TextInput
-            value={mapsLink}
-            onChange={setMapsLink}
+            value={form.mapsLink}
+            onChange={(v) => updateField("mapsLink", v)}
             placeholder="e.g. https://maps.google.com/..."
             rounded="rounded-[8px]"
           />
