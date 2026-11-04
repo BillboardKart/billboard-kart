@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useBillboardFormStore } from "@/stores/billboard-form-store";
 import {
   SectionCard,
   SectionTitle,
@@ -13,6 +14,16 @@ import {
 function AcceptedArtworkFormats() {
   const [activeFormat, setActiveFormat] = useState("CDR");
   const fmts = ["CDR", "JPEG", "PNG", "PDF", "AI", "EPS"];
+
+  const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
+  const updateField = useBillboardFormStore((s) => s.updateField);
+
+  const safeMarginBleed = (mediaSpecs.safeMarginBleed as string) ?? "";
+  const minimumResolutionDpi = (mediaSpecs.minimumResolutionDpi as string) ?? "";
+
+  const setMediaSpec = (key: string, value: unknown) =>
+    updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
+
   return (
     <SectionCard>
       <div>
@@ -31,20 +42,24 @@ function AcceptedArtworkFormats() {
           />
         ))}
       </Toggle>
-      <div className="flex gap-[16px] items-end">
+      <div className="flex gap-4 items-end">
         <Input
           label="Safe margin / bleed requirement"
-          value="3 inches bleed on all sides"
+          value={safeMarginBleed}
+          onChange={(v) => setMediaSpec("safeMarginBleed", v)}
+          placeholder="e.g. 3 inches bleed on all sides"
         />
         <Input
           label="Minimum resolution / DPI"
+          value={minimumResolutionDpi}
+          onChange={(v) => setMediaSpec("minimumResolutionDpi", v)}
           placeholder="e.g. 150"
           optional
         />
       </div>
       <p
         style={{ fontFamily: "Inter, sans-serif" }}
-        className="text-[12px] text-[#737373]"
+        className="text-xs text-[#737373]"
       >
         Leave blank if not specified
       </p>
@@ -58,7 +73,11 @@ function PrintMaterial() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
 
-  if (selected) console.log(`${setSelected}`);
+  const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
+  const updateField = useBillboardFormStore((s) => s.updateField);
+
+  const setMediaSpec = (key: string, value: unknown) =>
+    updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
 
   return (
     <SectionCard>
@@ -74,7 +93,10 @@ function PrintMaterial() {
             key={m}
             label={m}
             active={activeMaterial === m}
-            onClick={() => setActiveMaterial(m)}
+            onClick={() => {
+              setActiveMaterial(m);
+              setMediaSpec("printMaterial", m);
+            }}
           />
         ))}
       </Toggle>
@@ -82,19 +104,19 @@ function PrintMaterial() {
         <div className="relative">
           <p
             style={{ fontFamily: "Inter, sans-serif" }}
-            className="text-[14px] text-[#0a0a0a] mb-[8px]"
+            className="text-sm text-[#0a0a0a] mb-2"
           >
             Other Materials
           </p>
           <button
             onClick={() => setDropdownOpen((v) => !v)}
-            className="w-full bg-[#fafafa] h-[48px] rounded-[8px] relative text-left cursor-pointer"
+            className="w-full bg-[#fafafa] h-12 rounded-lg relative text-left cursor-pointer"
           >
-            <div className="absolute inset-0 border border-[#d4d4d4] rounded-[8px] pointer-events-none" />
-            <div className="flex items-center justify-between h-full px-[13px]">
+            <div className="absolute inset-0 border border-[#d4d4d4] rounded-lg pointer-events-none" />
+            <div className="flex items-center justify-between h-full px-3">
               <span
                 style={{ fontFamily: "Inter, sans-serif" }}
-                className={`text-[14px] ${selected ? "text-[#0a0a0a]" : "text-[#737373]"}`}
+                className={`text-sm ${selected ? "text-[#0a0a0a]" : "text-[#737373]"}`}
               >
                 {selected ?? "Select"}
               </span>
@@ -121,18 +143,23 @@ function PrintMaterial() {
           </button>
           {dropdownOpen && (
             <div
-              className="absolute z-50 left-0 right-0 top-full mt-[4px]"
+              className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-[#e5e5e5] rounded-lg shadow-lg overflow-hidden"
               style={{ maxHeight: "320px", overflowY: "auto" }}
             >
-              {/**
-              <DropdownMenuExpanded
-                selected={selected}
-                onSelect={(label) => {
-                  setSelected(label);
-                  setDropdownOpen(false);
-                }}
-              />
-              */}
+              {["Flex", "Vinyl", "Backlit flex", "Canvas", "Mesh"].map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => {
+                    setSelected(opt);
+                    setMediaSpec("otherMaterial", opt);
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2.5 text-sm hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+                  style={{ fontFamily: "Inter, sans-serif" }}
+                >
+                  {opt}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -142,23 +169,36 @@ function PrintMaterial() {
 }
 
 function AcceptedArtworkFormat() {
+  const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
+  const updateField = useBillboardFormStore((s) => s.updateField);
+
+  const safeMarginBleed = (mediaSpecs.safeMarginBleed as string) ?? "";
+  const minimumResolutionDpi = (mediaSpecs.minimumResolutionDpi as string) ?? "";
+
+  const setMediaSpec = (key: string, value: unknown) =>
+    updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
+
   return (
     <SectionCard>
       <SectionTitle>Accepted Artwork Format</SectionTitle>
-      <div className="flex gap-[16px] items-end">
+      <div className="flex gap-4 items-end">
         <Input
           label="Safe margin / bleed requirement"
-          value="3 inches bleed on all sides"
+          value={safeMarginBleed}
+          onChange={(v) => setMediaSpec("safeMarginBleed", v)}
+          placeholder="e.g. 3 inches bleed on all sides"
         />
         <Input
           label="Minimum resolution / DPI"
+          value={minimumResolutionDpi}
+          onChange={(v) => setMediaSpec("minimumResolutionDpi", v)}
           placeholder="e.g. 150"
           optional
         />
       </div>
       <p
         style={{ fontFamily: "Inter, sans-serif" }}
-        className="text-[12px] text-[#737373]"
+        className="text-xs text-[#737373]"
       >
         Leave blank if not specified
       </p>

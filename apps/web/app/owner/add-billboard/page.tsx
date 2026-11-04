@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { BillboardFormState } from "@/types/owner";
+import { useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useBillboardFormStore } from "@/stores/billboard-form-store";
+import { createClient } from "@/lib/supabase/client";
 import UploadBIllboardSelector from "@/components/owner/upload-billboard/add-billboard";
 import { Field, TextInput } from "@/components/owner/upload-billboard/ui";
 import BillboardTypeSelector from "@/components/owner/upload-billboard/BillboardTypeSelector";
@@ -23,92 +25,51 @@ import StaticSections from "@/components/owner/upload-billboard/media-specs/Stat
 import DigitalSections from "@/components/owner/upload-billboard/media-specs/DigitalSections";
 import DocumentVerificationStep from "@/components/owner/upload-billboard/doc-verification";
 
-type Errors = Record<string, string>;
-type Step = "details" | "mediaspecs" | "docverification";
-type FormatType = "static" | "digital";
+const BILLBOARD_TYPE_MAP: Record<string, string> = {
+  Hoarding: "hoarding",
+  Unipole: "unipole",
+  Gantry: "gantry",
+  "Building Facade\n(Wall Branding)": "building_facade",
+};
 
 export default function AddBillboardPage() {
-  const [form, setForm] = useState<BillboardFormState>({
-    billboardName: "",
-    city: "",
-    area: "",
-    landmark: "",
-    latitude: "19.0760",
-    longitude: "72.8777",
-    billboardType: "",
-    width: "",
-    height: "",
-    illumination: "Yes",
-    trafficSide: "Left",
-    visibilityNotes: "",
-    photos: [],
-    monthlyRate: "",
-    isAvailable: true,
-  });
-
-  const [errors, setErrors] = useState<Errors>({});
-  const [cityChip, setCityChip] = useState("");
-  const [mapsLink, setMapsLink] = useState("");
-  const [type, setType] = useState("");
-  const [facing, setFacing] = useState("North");
-  const [roadType, setRoadType] = useState("Highway");
-  const [dailyTraffic, setDailyTraffic] = useState("");
-  const [peakHours, setPeakHours] = useState("");
-  const [mix, setMix] = useState("");
-  const [minDuration, setMinDuration] = useState("1 month");
-  const [printingCost, setPrintingCost] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [step, setStep] = useState<Step>("details");
-  const [format, setFormat] = useState<FormatType>("static");
-
+  const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const updateField = <K extends keyof BillboardFormState>(
-    key: K,
-    value: BillboardFormState[K],
-  ) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
+  const form = useBillboardFormStore((s) => s.form);
+  const step = useBillboardFormStore((s) => s.step);
+  const showForm = useBillboardFormStore((s) => s.showForm);
+  const errors = useBillboardFormStore((s) => s.errors);
+  const isSubmitting = useBillboardFormStore((s) => s.isSubmitting);
+  const submitError = useBillboardFormStore((s) => s.submitError);
 
-  const clearError = (key: string) =>
-    setErrors((prev) => {
-      if (!prev[key]) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
+  const updateField = useBillboardFormStore((s) => s.updateField);
+  const addPhotos = useBillboardFormStore((s) => s.addPhotos);
+  const removePhoto = useBillboardFormStore((s) => s.removePhoto);
+  const setStep = useBillboardFormStore((s) => s.setStep);
+  const setShowForm = useBillboardFormStore((s) => s.setShowForm);
+  const setErrors = useBillboardFormStore((s) => s.setErrors);
+  const clearError = useBillboardFormStore((s) => s.clearError);
+  const setSubmitting = useBillboardFormStore((s) => s.setSubmitting);
+  const setSubmitError = useBillboardFormStore((s) => s.setSubmitError);
+  const reset = useBillboardFormStore((s) => s.reset);
 
-  const addPhotos = (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const urls = Array.from(files).map((f) => URL.createObjectURL(f));
-    updateField("photos", [...form.photos, ...urls]);
-    clearError("photos");
-  };
-
-  const removePhoto = (idx: number) =>
-    updateField(
-      "photos",
-      form.photos.filter((_, i) => i !== idx),
-    );
-
-  // WARNING: validate data when passing forward (utilize this when adding API endpoint)
-  const validate = (): Errors => {
-    const next: Errors = {};
+  const validate = () => {
+    const next: Record<string, string> = {};
     if (!form.billboardName.trim()) next.name = "Billboard name is required.";
-    if (!form.city.trim() && !cityChip)
+    if (!form.city.trim() && !form.cityChip)
       next.city = "Please select or search a city.";
     if (!form.area.trim()) next.area = "Area / Locality is required.";
     if (!form.landmark.trim())
       next.landmark = "Landmark is required to help renters locate the site.";
-    if (!type) next.type = "Select a billboard type.";
+    if (!form.billboardType) next.type = "Select a billboard type.";
     if (!form.width.trim()) next.width = "Width is required.";
     if (!form.height.trim()) next.height = "Height is required.";
     if (form.photos.length < 3) {
       const remaining = 3 - form.photos.length;
       next.photos = `Add ${remaining} more photo${remaining > 1 ? "s" : ""} to continue.`;
     }
-    if (!form.monthlyRate.trim())
-      next.monthlyRate = "Monthly rate is required.";
+    if (!form.monthlyRate.trim()) next.monthlyRate = "Monthly rate is required.";
     return next;
   };
 
@@ -129,8 +90,99 @@ export default function AddBillboardPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSaveDocVerification = () => {
-    window.alert("Documents submitted for review — billboard published!");
+  const handleSaveDocVerification = async () => {
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setSubmitError("Not authenticated. Please log in again.");
+        setSubmitting(false);
+        return;
+      }
+
+      const fd = new FormData();
+
+      // Step 1 — text fields
+      fd.append("billboardName", form.billboardName);
+      fd.append(
+        "billboardTypeCode",
+        BILLBOARD_TYPE_MAP[form.billboardType] || "hoarding",
+      );
+      fd.append("cityId", form.city);
+      fd.append("area", form.area);
+      fd.append("landmark", form.landmark);
+      fd.append("mapsLink", form.mapsLink);
+      fd.append("latitude", form.latitude);
+      fd.append("longitude", form.longitude);
+      fd.append("widthFt", form.width);
+      fd.append("heightFt", form.height);
+      fd.append("illumination", form.illumination);
+      fd.append("trafficSide", form.trafficSide);
+      fd.append("facingDirection", form.facingDirection);
+      fd.append("roadType", form.roadType);
+      fd.append("dailyReach", form.dailyTraffic);
+      fd.append("peakHours", form.peakHours);
+      fd.append("vehiclePedestrianMix", form.vehiclePedestrianMix);
+      fd.append("visibilityNotes", form.visibilityNotes);
+      fd.append("monthlyRate", form.monthlyRate);
+      fd.append("minBookingDuration", form.minBookingDuration);
+      fd.append("printingCost", form.printingCost);
+      fd.append("isAvailable", String(form.isAvailable));
+
+      // Step 2
+      fd.append("formatType", form.formatType);
+      fd.append("mediaSpecs", JSON.stringify(form.mediaSpecs));
+
+      // Step 3 — text fields
+      fd.append("propertyOwnerDetails", form.propertyOwnerDetails);
+      fd.append("licenseNumber", form.licenseNumber);
+      fd.append("licenseExpiryDate", form.licenseExpiryDate);
+      fd.append("structuralCertificateExpiry", form.structuralCertificateExpiry);
+      fd.append("gstNumber", form.gstNumber);
+      fd.append("businessAddress", form.businessAddress);
+      fd.append("contactPersonName", form.contactPersonName);
+      fd.append("contactPhone", form.contactPhone);
+      fd.append("contactEmail", form.contactEmail);
+
+      // Step 3 — files
+      form.photoFiles.forEach((f) => fd.append("photos", f));
+      if (form.municipalLicense)
+        fd.append("municipalLicense", form.municipalLicense);
+      if (form.proofOfOwnership)
+        fd.append("proofOfOwnership", form.proofOfOwnership);
+      if (form.nocCertificate) fd.append("nocCertificate", form.nocCertificate);
+      if (form.structuralCertificate)
+        fd.append("structuralCertificate", form.structuralCertificate);
+      if (form.gstCertificate)
+        fd.append("gstCertificate", form.gstCertificate);
+
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/billboards`;
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: fd,
+      });
+
+      const body = await res.json();
+
+      if (!res.ok) {
+        throw new Error(body.message || `Submit failed (${res.status})`);
+      }
+
+      reset();
+      router.push("/owner/my-inventory");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setSubmitError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -154,7 +206,6 @@ export default function AddBillboardPage() {
               {/* Step 1: Billboard Details */}
               {step === "details" && (
                 <>
-                  {/* Location block */}
                   <div className="flex flex-col gap-6">
                     <Field label="Billboard Name" required error={errors.name}>
                       <div data-error={!!errors.name}>
@@ -171,9 +222,8 @@ export default function AddBillboardPage() {
                     </Field>
 
                     <BillboardTypeSelector
-                      value={type}
+                      value={form.billboardType}
                       onChange={(label) => {
-                        setType(label);
                         updateField("billboardType", label);
                         clearError("type");
                       }}
@@ -186,8 +236,8 @@ export default function AddBillboardPage() {
                         updateField("city", v);
                         clearError("city");
                       }}
-                      chip={cityChip}
-                      onChipChange={setCityChip}
+                      chip={form.cityChip}
+                      onChipChange={(chip) => updateField("cityChip", chip)}
                       error={errors.city}
                     />
 
@@ -195,8 +245,6 @@ export default function AddBillboardPage() {
                       form={form}
                       updateField={updateField}
                       errors={errors}
-                      mapsLink={mapsLink}
-                      setMapsLink={setMapsLink}
                     />
                   </div>
                   <DimensionsSection
@@ -226,15 +274,25 @@ export default function AddBillboardPage() {
                       )
                     }
                   />
-                  <FacingDirectionSection value={facing} onChange={setFacing} />
-                  <RoadTypeSection value={roadType} onChange={setRoadType} />
+                  <FacingDirectionSection
+                    value={form.facingDirection}
+                    onChange={(v) => updateField("facingDirection", v)}
+                  />
+                  <RoadTypeSection
+                    value={form.roadType}
+                    onChange={(v) => updateField("roadType", v)}
+                  />
                   <TrafficEstimateSection
-                    dailyTraffic={dailyTraffic}
-                    onDailyTrafficChange={setDailyTraffic}
-                    peakHours={peakHours}
-                    onPeakHoursChange={setPeakHours}
-                    mix={mix}
-                    onMixChange={setMix}
+                    dailyTraffic={form.dailyTraffic}
+                    onDailyTrafficChange={(v) =>
+                      updateField("dailyTraffic", v)
+                    }
+                    peakHours={form.peakHours}
+                    onPeakHoursChange={(v) => updateField("peakHours", v)}
+                    mix={form.vehiclePedestrianMix}
+                    onMixChange={(v) =>
+                      updateField("vehiclePedestrianMix", v)
+                    }
                   />
                   <VisibilityNotesSection
                     value={form.visibilityNotes}
@@ -258,10 +316,14 @@ export default function AddBillboardPage() {
                     onToggleAvailability={() =>
                       updateField("isAvailable", !form.isAvailable)
                     }
-                    minDuration={minDuration}
-                    onMinDurationChange={setMinDuration}
-                    printingCost={printingCost}
-                    onPrintingCostChange={setPrintingCost}
+                    minDuration={form.minBookingDuration}
+                    onMinDurationChange={(v) =>
+                      updateField("minBookingDuration", v)
+                    }
+                    printingCost={form.printingCost}
+                    onPrintingCostChange={(v) =>
+                      updateField("printingCost", v)
+                    }
                     monthlyRateError={errors.monthlyRate}
                   />
                 </>
@@ -279,7 +341,7 @@ export default function AddBillboardPage() {
                     </h1>
                     <p
                       style={{ fontFamily: "Inter, sans-serif" }}
-                      className="text-[16px] text-[#737373] leading-6"
+                      className="text-base text-[#737373] leading-6"
                     >
                       Tell advertisers about your billboard&apos;s technical
                       details.
@@ -287,12 +349,15 @@ export default function AddBillboardPage() {
                   </div>
 
                   <div className="flex flex-col gap-6">
-                    <FormatTypeCard format={format} onChange={setFormat} />
+                    <FormatTypeCard
+                      format={form.formatType}
+                      onChange={(v) => updateField("formatType", v)}
+                    />
                     <PhysicalSize />
 
                     <div
                       style={{
-                        display: format === "static" ? "flex" : "none",
+                        display: form.formatType === "static" ? "flex" : "none",
                         flexDirection: "column",
                         gap: "24px",
                       }}
@@ -301,7 +366,8 @@ export default function AddBillboardPage() {
                     </div>
                     <div
                       style={{
-                        display: format === "digital" ? "flex" : "none",
+                        display:
+                          form.formatType === "digital" ? "flex" : "none",
                         flexDirection: "column",
                         gap: "24px",
                       }}
@@ -327,10 +393,12 @@ export default function AddBillboardPage() {
               }
               onSkipAction={
                 step === "details"
-                  ? () => window.alert("Saved as draft")
+                  ? undefined
                   : step === "mediaspecs"
-                    ? () => window.alert("Skipped media specs")
-                    : () => window.alert("Skipped document verification")
+                    ? undefined
+                    : () => {
+                        handleSaveDocVerification();
+                      }
               }
               onContinueAction={
                 step === "details"
@@ -339,6 +407,8 @@ export default function AddBillboardPage() {
                     ? handleSaveMediaSpecs
                     : handleSaveDocVerification
               }
+              isSubmitting={isSubmitting}
+              submitError={submitError}
             />
           </>
         )}

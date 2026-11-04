@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { MapContainer, Marker, TileLayer, ZoomControl } from "react-leaflet";
 import type { Billboard } from "@/lib/billboards";
+import { CARTO_ATTRIBUTION, getCartoTileUrl } from "@/lib/map";
 
 interface MapInnerProps {
   billboards: Billboard[];
@@ -76,10 +77,7 @@ export default function MapInner({
         zIndex: 0,
       }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-      />
+      <TileLayer attribution={CARTO_ATTRIBUTION} url={getCartoTileUrl()} />
       <ZoomControl position="topright" />
       {billboards.map((b) => (
         <Marker

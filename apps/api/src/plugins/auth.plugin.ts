@@ -40,5 +40,5 @@ export const authPlugin = (app: Elysia) =>
     }
 
     console.log("[AUTH] User authenticated:", data.user.id);
-    return { authUser: data.user };
+    return { authUser: data.user, token };
   });
