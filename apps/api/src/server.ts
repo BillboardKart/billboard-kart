@@ -3,6 +3,7 @@ import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { userRoutes } from "@/src/modules/auth/user.routes";
 import { cityRoutes } from "@/src/modules/city/city.routes";
+import { billboardRoutes } from "@/src/modules/billboard/billboard.routes";
 
 const required = [
   "PORT",
@@ -56,6 +57,7 @@ const app = new Elysia({ prefix: "/api/v1" })
   // Mount Domain Modules
   .use(userRoutes)
   .use(cityRoutes)
+  .use(billboardRoutes)
 
   .listen(process.env.PORT ?? 3001);
 
