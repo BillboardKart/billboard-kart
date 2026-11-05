@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getBillboard } from "@/lib/billboards";
+import { resolveBillboard } from "@/lib/billboard-api";
 import type { Metadata } from "next";
 import BillboardClient from "./billboard-client";
 
@@ -11,7 +11,7 @@ type Props = {
 // 1. Generate dynamic SEO metadata based on the specific billboard
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const billboard = getBillboard(id);
+  const billboard = await resolveBillboard(id);
 
   if (!billboard) {
     return { title: "Billboard Not Found" };
@@ -23,10 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-// 2. Server-side data fetching and rendering
+// 2. Server-side data fetching and rendering (live API → dummy fallback)
 export default async function BillboardPage({ params }: Props) {
   const { id } = await params;
-  const billboard = getBillboard(id);
+  const billboard = await resolveBillboard(id);
 
   if (!billboard) {
     notFound(); // Automatically triggers your app/not-found.tsx UI

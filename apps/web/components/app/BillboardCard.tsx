@@ -12,13 +12,13 @@ interface BillboardCardProps {
 const statusStyle: Record<Billboard["status"], string> = {
   available: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   booked: "bg-secondary text-muted-foreground ring-border",
-  premium: "bg-amber-50 text-amber-700 ring-amber-200",
+  maintenance: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
 const statusLabel: Record<Billboard["status"], string> = {
   available: "Available",
   booked: "Booked",
-  premium: "Premium",
+  maintenance: "Maintenance",
 };
 
 export function BillboardCard({
@@ -79,9 +79,9 @@ export function BillboardCard({
         </div>
         <div className="mt-1 flex items-center justify-between gap-2">
           <div className="text-[15px] font-bold text-red-600">
-            ${billboard.weeklyPrice.toLocaleString()}
+            ${billboard.monthlyPrice.toLocaleString()}
             <span className="text-xs font-medium text-muted-foreground">
-              /week
+              /month
             </span>
           </div>
           <div className="flex items-center gap-1 text-xs font-medium">

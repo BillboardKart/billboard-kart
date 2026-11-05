@@ -21,14 +21,14 @@ function priceIcon(
     ? "var(--primary)"
     : status === "booked"
       ? "#ffffff"
-      : status === "premium"
+      : status === "maintenance"
         ? "#fbbf24"
         : "var(--primary)";
   const color = active
     ? "#fff"
     : status === "booked"
       ? "#111"
-      : status === "premium"
+      : status === "maintenance"
         ? "#1a1a1a"
         : "#fff";
   const border = active

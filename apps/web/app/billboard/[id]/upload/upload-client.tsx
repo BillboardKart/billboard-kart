@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { TopNav } from "@/components/app/TopNav";
 // import { Stepper } from "@/components/app/Stepper";
-import { getBillboard } from "@/lib/billboards";
+import { useResolveBillboards } from "@/lib/use-resolve-billboards";
 import { useSelection } from "@/lib/selection";
 import { Button } from "@/components/ui/button";
 
@@ -51,8 +51,11 @@ export default function UploadClient() {
       ? selection.items
       : [{ id: urlBillboardId, startDate: "", endDate: "" }];
 
+  const resolve = useResolveBillboards(items.map((it) => it.id));
+
+  // Dummy data first, live API for ids the dummy dataset doesn't know
   const billboards = items
-    .map((it) => getBillboard(it.id))
+    .map((it) => resolve(it.id))
     .filter((b): b is NonNullable<typeof b> => Boolean(b));
 
   const subtotal = billboards.reduce((sum, b) => sum + b.weeklyPrice, 0);

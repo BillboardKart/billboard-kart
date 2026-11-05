@@ -95,9 +95,9 @@ export default function BillboardClient({
               unoptimized // Added to prevent Next.js image optimization errors with dummy external URLs
               className="object-cover"
             />
-            {billboard.status === "premium" && (
+            {billboard.status === "maintenance" && (
               <span className="absolute left-4 bottom-4 inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-xs font-medium text-background">
-                <Sparkles className="h-3.5 w-3.5" /> Premium Spot
+                <Sparkles className="h-3.5 w-3.5" /> Under Maintenance
               </span>
             )}
             <div className="absolute right-4 top-4 flex gap-2">

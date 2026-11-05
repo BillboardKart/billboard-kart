@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server";
 import { UserRole } from "@/lib/types";
 
 function getRedirectBase(request: Request): string {
+  if (process.env.NODE_ENV !== "production") {
+    return new URL(request.url).origin;
+  }
   const fromEnv = process.env.NEXT_PUBLIC_APP_URL;
   if (fromEnv) {
     return fromEnv.replace(/\/$/, "");

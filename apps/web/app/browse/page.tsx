@@ -3,34 +3,97 @@
 import { BillboardCard } from "@/components/app/BillboardCard";
 import { MapView } from "@/components/app/MapView";
 import { TopNav } from "@/components/app/TopNav";
+import { BILLBOARDS, type Billboard } from "@/lib/billboards";
 import {
-  BILLBOARDS,
-  CATEGORIES,
-  type BillboardCategory,
-} from "@/lib/billboards";
+  fetchBillboardsPage,
+  type BillboardsPageResult,
+  type PaginationMeta,
+} from "@/lib/billboard-api";
 import { cn } from "@/lib/utils";
-import { List, Map as MapIcon, MapPin, Star } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  List,
+  Map as MapIcon,
+  MapPin,
+  Star,
+  TriangleAlert,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Filter = "All" | BillboardCategory;
+const FALLBACK:{
+  billboards: Billboard[];
+  pagination: PaginationMeta;
+  } = {
+  billboards: BILLBOARDS,
+  pagination: {
+    page: 1,
+    limit: BILLBOARDS.length,
+    total: BILLBOARDS.length,
+    totalPages: 1,
+    hasNext: false,
+    hasPrev: false,
+  },
+};
 
 export default function BrowsePage() {
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("All");
-  const [activeId, setActiveId] = useState<string>(BILLBOARDS[0]?.id || "");
+  const [filter, setFilter] = useState<string>("All");
+
+  const [result, setResult] = useState<BillboardsPageResult | null>(null);
+  const [fallbackActive, setFallbackActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+
+  const [activeId, setActiveId] = useState<string>("");
   const [view, setView] = useState<"list" | "map">("map");
+
+  const loadPage = useCallback(async (targetPage: number) => {
+    setIsLoading(true);
+    try {
+      const data = await fetchBillboardsPage(targetPage);
+      setResult(data);
+      setFallbackActive(false);
+      setActiveId(data.billboards[0]?.id ?? "");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      setResult(FALLBACK);
+      setFallbackActive(true);
+      setActiveId(FALLBACK.billboards[0]?.id ?? "");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPage(page);
+  }, [loadPage, page]);
+
+  const billboards = useMemo(
+    () => result?.billboards ?? [],
+    [result],
+  );
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of billboards) if (b.category) set.add(b.category);
+    return [...set];
+  }, [billboards]);
 
   const filtered = useMemo(
     () =>
       filter === "All"
-        ? BILLBOARDS
-        : BILLBOARDS.filter((b) => b.category === filter),
-    [filter],
+        ? billboards
+        : billboards.filter((b) => b.category === filter),
+    [billboards, filter],
   );
+
   const active = filtered.find((b) => b.id === activeId) ?? filtered[0];
+
+  const pagination = result?.pagination;
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,7 +106,9 @@ export default function BrowsePage() {
               Billboards in New York, NY
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {filtered.length * 24} available spaces · Showing on map
+              {pagination
+                ? `${pagination.total} available spaces · Showing on map`
+                : "Loading billboards..."}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1 rounded-xl border border-border bg-card p-1">
@@ -74,9 +139,16 @@ export default function BrowsePage() {
           </div>
         </div>
 
+        {fallbackActive && (
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <TriangleAlert className="h-4 w-4 shrink-0" />
+            Live data unavailable — showing sample listings.
+          </div>
+        )}
+
         {/* Filters */}
         <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {(["All", ...CATEGORIES] as Filter[]).map((c) => (
+          {(["All", ...categories] as string[]).map((c) => (
             <button
               key={c}
               type="button"
@@ -114,18 +186,67 @@ export default function BrowsePage() {
         >
           {/* Cards */}
           <div className="flex flex-col gap-3">
-            {filtered.map((b) => (
-              <BillboardCard
-                key={b.id}
-                billboard={b}
-                active={b.id === activeId}
-                onClick={() => {
-                  setActiveId(b.id);
-                  if (window.innerWidth < 1024)
-                    router.push(`/billboard/${b.id}`);
-                }}
-              />
-            ))}
+            {isLoading &&
+              Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="grid w-full grid-cols-[112px_minmax(0,1fr)] gap-3 rounded-2xl border bg-card p-3 sm:gap-4"
+                >
+                  <div className="min-h-24 rounded-xl bg-secondary animate-pulse" />
+                  <div className="flex flex-col justify-between py-0.5">
+                    <div className="h-4 w-3/4 rounded bg-secondary animate-pulse" />
+                    <div className="h-3 w-1/2 rounded bg-secondary animate-pulse" />
+                    <div className="h-3 w-1/3 rounded bg-secondary animate-pulse" />
+                  </div>
+                </div>
+              ))}
+
+            {!isLoading &&
+              filtered.map((b) => (
+                <BillboardCard
+                  key={b.id}
+                  billboard={b}
+                  active={b.id === activeId}
+                  onClick={() => {
+                    setActiveId(b.id);
+                    if (window.innerWidth < 1024)
+                      router.push(`/billboard/${b.id}`);
+                  }}
+                />
+              ))}
+
+            {!isLoading && pagination && (
+              <div className="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
+                <button
+                  type="button"
+                  disabled={!pagination.hasPrev}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-foreground transition enabled:hover:bg-secondary disabled:cursor-not-allowed disabled:text-muted-foreground/50"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </button>
+
+                <p className="text-sm text-muted-foreground">
+                  Page{" "}
+                  <span className="font-semibold text-foreground">
+                    {pagination.page}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-semibold text-foreground">
+                    {pagination.totalPages}
+                  </span>
+                </p>
+
+                <button
+                  type="button"
+                  disabled={!pagination.hasNext}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-foreground transition enabled:hover:bg-secondary disabled:cursor-not-allowed disabled:text-muted-foreground/50"
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Map */}
@@ -143,7 +264,7 @@ export default function BrowsePage() {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />{" "}
-                  Premium
+                  Maintenance
                 </span>
               </div>
 
@@ -178,10 +299,8 @@ export default function BrowsePage() {
                       </div>
                     </div>
 
-                    {/* Main Metadata Text Stack: Added md:flex md:flex-col md:justify-between md:h-24. 
-                        This forces the title to align with the top of the image and pushes badges flush to the bottom edge! */}
+                    {/* Main Metadata Text Stack */}
                     <div className="min-w-0 md:flex md:h-24 md:flex-col md:justify-between">
-                      {/* Top Section: Title and Address grouped together so title sits at the very top */}
                       <div>
                         <div className="hidden items-center gap-2 md:flex">
                           <h3 className="truncate text-base font-bold text-foreground">
@@ -201,7 +320,6 @@ export default function BrowsePage() {
                         </div>
                       </div>
 
-                      {/* Bottom Section: Badges pushed to the bottom of the container to align exactly where image height ends */}
                       <div className="mt-1 flex flex-wrap items-center gap-1 sm:gap-1.5 md:mt-0">
                         <span className="rounded border border-border bg-background px-1 py-0.5 text-[9px] font-medium sm:px-1.5 sm:text-[10px] md:rounded-md">
                           {active.size}
@@ -220,15 +338,13 @@ export default function BrowsePage() {
                     <div className="col-span-2 flex flex-row items-center justify-between gap-2 border-t border-border/60 pt-2 sm:gap-4 sm:pt-3 md:col-span-1 md:flex-col md:items-end md:justify-center md:border-none md:pt-0">
                       <div className="text-left md:text-right">
                         <span className="text-base font-black text-red-600 sm:text-lg md:text-xl">
-                          ${active.weeklyPrice.toLocaleString()}
+                          ${active.monthlyPrice.toLocaleString()}
                         </span>
-                        {/* Changed from md:block to md:inline-block so "/week" stays on the same line as the price on large screens */}
                         <span className="ml-1 text-[10px] text-muted-foreground sm:text-xs md:inline-block md:ml-1">
-                          /week
+                          /month
                         </span>
                       </div>
 
-                      {/* Buttons: Unchanged */}
                       <div className="flex w-full max-w-45 items-center gap-1.5 sm:max-w-55 sm:gap-2 md:max-w-none">
                         <Link
                           href={`/billboard/${active.id}`}

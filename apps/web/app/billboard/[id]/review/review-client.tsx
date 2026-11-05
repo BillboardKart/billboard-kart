@@ -6,7 +6,7 @@ import { Calendar, Check, MapPin, Plus, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TopNav } from "@/components/app/TopNav";
 // import { Stepper } from "@/components/app/Stepper";
-import { getBillboard } from "@/lib/billboards";
+import { useResolveBillboards } from "@/lib/use-resolve-billboards";
 import { useSelection } from "@/lib/selection";
 import { cn } from "@/lib/utils";
 
@@ -39,8 +39,11 @@ export default function ReviewClient() {
           { id: "downtown-led-hub", startDate: "", endDate: "" },
         ];
 
+  const resolve = useResolveBillboards(items.map((it) => it.id));
+
+  // Dummy data first, live API for ids the dummy dataset doesn't know
   const billboards = items
-    .map((it) => getBillboard(it.id))
+    .map((it) => resolve(it.id))
     .filter((b): b is NonNullable<typeof b> => Boolean(b));
 
   const subtotal = billboards.reduce((sum, b) => sum + b.weeklyPrice, 0);
