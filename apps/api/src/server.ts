@@ -4,6 +4,8 @@ import { cors } from "@elysiajs/cors";
 import { userRoutes } from "@/src/modules/auth/user.routes";
 import { cityRoutes } from "@/src/modules/city/city.routes";
 import { billboardRoutes } from "@/src/modules/billboard/billboard.routes";
+import { billboardPublicRoutes } from "@/src/modules/billboard/billboard.routes";
+import { healthRoutes } from "@/src/modules/health/health.routes";
 
 const required = [
   "PORT",
@@ -25,6 +27,26 @@ const app = new Elysia({ prefix: "/api/v1" })
 
   // Global error handler
   .onError(({ code, error, set }) => {
+    // Schema/query validation failures → 422 with concise details
+    if (code === "VALIDATION") {
+      set.status = 422;
+
+      let details: unknown = error;
+      if (error instanceof Error) {
+        try {
+          details = JSON.parse(error.message);
+        } catch {
+          details = error.message;
+        }
+      }
+
+      return {
+        success: false,
+        error: "Validation failed",
+        details,
+      };
+    }
+
     console.error(`[API Error] ${code}:`, error);
 
     set.status = code === "NOT_FOUND" ? 404 : 500;
@@ -58,6 +80,8 @@ const app = new Elysia({ prefix: "/api/v1" })
   .use(userRoutes)
   .use(cityRoutes)
   .use(billboardRoutes)
+  .use(billboardPublicRoutes)
+  .use(healthRoutes)
 
   .listen(process.env.PORT ?? 3001);
 

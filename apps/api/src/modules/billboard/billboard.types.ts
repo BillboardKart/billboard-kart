@@ -81,6 +81,71 @@ export interface MediaSpecsData {
   [key: string]: unknown;
 }
 
+/** Query params accepted by the public listing endpoint. */
+export interface ListBillboardsQuery {
+  page?: string;
+  limit?: string;
+  cityId?: string;
+  quickStatus?: string;
+  search?: string;
+}
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+/** Shape of a single billboard item in the listing response. */
+export type BillboardListItem = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  sizeDisplay: string | null;
+  widthFt: unknown;
+  heightFt: unknown;
+  lifecycleStatus: string;
+  quickStatus: string;
+  illumination: boolean;
+  dailyReach: number | null;
+  ratingAvg: unknown;
+  ratingCount: number;
+  minBookingDuration: string;
+  billboardType: { id: string; name: string; code: string; category: { name: string } };
+  address: {
+    neighborhood: string | null;
+    landmark: string | null;
+    lat: number;
+    lng: number;
+    city: { id: string; name: string };
+  };
+  media: Array<{
+    id: string;
+    fileUrl: string;
+    isPrimary: boolean;
+    sortOrder: number;
+  }>;
+  pricing: Array<{ pricePerMonth: unknown; currencyCode: string }>;
+  tags: Array<{ slug: string; label: string }>;
+  createdAt: string;
+};
+
+/** Shape of a billboard item in the listing response. */
+export interface BillboardListResponse {
+  success: true;
+  data: BillboardListItem[];
+  pagination: PaginationMeta;
+}
+
+export interface GetBillboardResponse {
+  success: true;
+  data: BillboardListItem;
+}
+
 export interface CreateBillboardResponse {
   success: true;
   billboard: {

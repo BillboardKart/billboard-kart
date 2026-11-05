@@ -1,11 +1,62 @@
 // api/src/modules/billboard/billboard.routes.ts
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
 import { authPlugin } from "@/src/plugins/auth.plugin";
 import {
   BillboardService,
   ValidationError,
   NotFoundError,
 } from "@/src/modules/billboard/billboard.service";
+
+/**
+ * Public listing endpoints — no auth overhead.
+ * GET /api/v1/billboards
+ * GET /api/v1/billboards/:idOrSlug (uuid or slug)
+ */
+export const billboardPublicRoutes = new Elysia({ prefix: "/billboards" })
+  .get(
+    "/",
+    async ({ query }) => {
+      return await BillboardService.listBillboards(query);
+    },
+    {
+      query: t.Object({
+        page: t.Optional(
+          t.RegExp(/^[1-9]\d*$/, { error: "page must be a positive integer" }),
+        ),
+        limit: t.Optional(
+          t.RegExp(/^[1-9]\d*$/, { error: "limit must be a positive integer" }),
+        ),
+        cityId: t.Optional(t.String({ format: "uuid" })),
+        quickStatus: t.Optional(
+          t.Union([
+            t.Literal("available"),
+            t.Literal("booked"),
+            t.Literal("maintenance"),
+          ]),
+        ),
+        search: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
+      }),
+    },
+  )
+  .get(
+    "/:idOrSlug",
+    async ({ params, set }) => {
+      try {
+        return await BillboardService.getBillboard(params.idOrSlug);
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          set.status = 404;
+          return { success: false, error: error.message };
+        }
+        throw error;
+      }
+    },
+    {
+      params: t.Object({
+        idOrSlug: t.String({ minLength: 1, maxLength: 120 }),
+      }),
+    },
+  );
 
 /**
  * POST /api/v1/billboards

@@ -11,6 +11,10 @@ import type { User } from "@supabase/supabase-js";
 import type {
   CreateBillboardRequest,
   CreateBillboardResponse,
+  GetBillboardResponse,
+  ListBillboardsQuery,
+  BillboardListResponse,
+  BillboardListItem,
   MediaSpecsData,
 } from "@/src/modules/billboard/billboard.types";
 import {
@@ -132,6 +136,111 @@ export class NotFoundError extends Error {
 }
 
 // Service
+
+const billboardListSelect = {
+  id: true,
+  slug: true,
+  name: true,
+  description: true,
+  sizeDisplay: true,
+  widthFt: true,
+  heightFt: true,
+  lifecycleStatus: true,
+  quickStatus: true,
+  illumination: true,
+  dailyReach: true,
+  ratingAvg: true,
+  ratingCount: true,
+  minBookingDuration: true,
+  createdAt: true,
+  billboardType: {
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      category: { select: { name: true } },
+    },
+  },
+  address: {
+    select: {
+      neighborhood: true,
+      landmark: true,
+      lat: true,
+      lng: true,
+      city: { select: { id: true, name: true } },
+    },
+  },
+  media: {
+    select: {
+      id: true,
+      fileUrl: true,
+      isPrimary: true,
+      sortOrder: true,
+    },
+    orderBy: { sortOrder: "asc" },
+  },
+  pricing: {
+    where: { effectiveTo: null },
+    select: { pricePerMonth: true, currencyCode: true },
+  },
+  billboardTags: {
+    select: { tag: { select: { slug: true, label: true } } },
+  },
+} satisfies Prisma.BillboardSelect;
+
+type BillboardRow = Prisma.BillboardGetPayload<{
+  select: typeof billboardListSelect;
+}>;
+
+function mapBillboardListItem(item: BillboardRow): BillboardListItem {
+  return {
+    id: item.id,
+    slug: item.slug,
+    name: item.name,
+    description: item.description,
+    sizeDisplay: item.sizeDisplay,
+    widthFt: item.widthFt,
+    heightFt: item.heightFt,
+    lifecycleStatus: item.lifecycleStatus,
+    quickStatus: item.quickStatus,
+    illumination: item.illumination,
+    dailyReach: item.dailyReach,
+    ratingAvg: item.ratingAvg,
+    ratingCount: item.ratingCount,
+    minBookingDuration: item.minBookingDuration,
+    billboardType: {
+      id: item.billboardType.id,
+      name: item.billboardType.name,
+      code: item.billboardType.code,
+      category: { name: item.billboardType.category.name },
+    },
+    address: {
+      neighborhood: item.address.neighborhood,
+      landmark: item.address.landmark,
+      lat: item.address.lat,
+      lng: item.address.lng,
+      city: {
+        id: item.address.city.id,
+        name: item.address.city.name,
+      },
+    },
+    media: item.media.map((m) => ({
+      id: m.id,
+      fileUrl: m.fileUrl,
+      isPrimary: m.isPrimary,
+      sortOrder: m.sortOrder,
+    })),
+    pricing: item.pricing.map((p) => ({
+      pricePerMonth: p.pricePerMonth,
+      currencyCode: p.currencyCode,
+    })),
+    tags: item.billboardTags.map((entry) => entry.tag),
+    createdAt: item.createdAt.toISOString(),
+  };
+}
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export class BillboardService {
   /**
@@ -410,65 +519,73 @@ export class BillboardService {
           });
         }
 
-        // Fetch the complete billboard with relations (single query)
-        const complete = await tx.billboard.findUniqueOrThrow({
-          where: { id: billboard.id },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            lifecycleStatus: true,
-            quickStatus: true,
-            widthFt: true,
-            heightFt: true,
-            illumination: true,
-            trafficSide: true,
-            facingDirection: true,
-            roadType: true,
-            minBookingDuration: true,
-            printingCost: true,
-            address: {
-              select: {
-                id: true,
-                neighborhood: true,
-                landmark: true,
-                lat: true,
-                lng: true,
-                city: { select: { id: true, name: true } },
-              },
-            },
-            billboardType: { select: { id: true, name: true, code: true } },
-            media: {
-              select: {
-                id: true,
-                fileUrl: true,
-                isPrimary: true,
-                sortOrder: true,
-              },
-              orderBy: { sortOrder: "asc" },
-            },
-            pricing: {
-              select: {
-                id: true,
-                pricePerMonth: true,
-                currencyCode: true,
-              },
-            },
-            verificationDocuments: {
-              select: {
-                id: true,
-                documentType: true,
-                documentNumber: true,
-                status: true,
-              },
-            },
-          },
-        });
-
-        return complete;
+        // Transaction returns only the id; the full read happens AFTER
+        // (see below) so the tx connection never gets its parallel
+        // multi-SELECT plan for relational queries
+        return billboard.id;
       });
 
-      return { success: true, billboard: result };
+      // Fetch the complete billboard with relations — outside the
+      // transaction (committed state). Inside a transaction, Prisma v7
+      // dispatches the per-table sub-SELECTs of this relational read
+      // concurrently on the single tx connection, overlapping
+      // client.query() calls (deprecated in pg@9). The pooled
+      // (non-transaction) path is the safe flow-control mechanism here.
+      const complete = await prisma.billboard.findUniqueOrThrow({
+        where: { id: result },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          lifecycleStatus: true,
+          quickStatus: true,
+          widthFt: true,
+          heightFt: true,
+          illumination: true,
+          trafficSide: true,
+          facingDirection: true,
+          roadType: true,
+          minBookingDuration: true,
+          printingCost: true,
+          address: {
+            select: {
+              id: true,
+              neighborhood: true,
+              landmark: true,
+              lat: true,
+              lng: true,
+              city: { select: { id: true, name: true } },
+            },
+          },
+          billboardType: { select: { id: true, name: true, code: true } },
+          media: {
+            select: {
+              id: true,
+              fileUrl: true,
+              isPrimary: true,
+              sortOrder: true,
+            },
+            orderBy: { sortOrder: "asc" },
+          },
+          pricing: {
+            select: {
+              id: true,
+              pricePerMonth: true,
+              currencyCode: true,
+            },
+          },
+          verificationDocuments: {
+            select: {
+              id: true,
+              documentType: true,
+              documentNumber: true,
+              status: true,
+            },
+          },
+        },
+      });
+
+      return { success: true, billboard: complete };
     } catch (error) {
       // If transaction fails, clean up all uploaded files
       const allPaths = [
@@ -478,5 +595,113 @@ export class BillboardService {
       await deleteStorageFiles(token, allPaths);
       throw error;
     }
+  }
+
+  /**
+   * Lists active billboards with offset pagination.
+   *
+   * Strategy for efficiency and scale:
+   * 1. Single findMany query — Prisma eager-loads all relations (no N+1)
+   * 2. findMany + count run as sequential plain awaits (no transaction):
+   *    Prisma v7 splits relational queries into one SELECT per table and
+   *    dispatches the sub-queries CONCURRENTLY when inside a transaction,
+   *    which overlaps calls on pg's single transaction connection
+   *    (deprecated in pg@9 and slow). Out here the pg Pool is the async
+   *    flow-control mechanism — each query gets its own connection.
+   *    A tiny read-after-read drift between findMany and count is
+   *    acceptable for a public listing; we also save BEGIN/COMMIT
+   *    round-trips on every request.
+   * 3. Sorted by createdAt DESC — backed by the existing
+   *    @@index([createdAt, id]) composite index on billboards
+   * 4. Relations eagerly filtered server-side (active pricing only)
+   * 5. Page size capped (<= 100) to bound payload size and query cost
+   */
+  static async listBillboards(
+    query: ListBillboardsQuery,
+  ): Promise<BillboardListResponse> {
+    const page = Math.max(1, Number.parseInt(query.page ?? "1", 10) || 1);
+    const limit = Math.min(
+      100,
+      Math.max(1, Number.parseInt(query.limit ?? "20", 10) || 20),
+    );
+
+    const where: Prisma.BillboardWhereInput = {
+      deletedAt: null,
+      lifecycleStatus: BillboardLifecycleStatus.active,
+    };
+
+    if (query.cityId) {
+      where.address = { cityId: query.cityId };
+    }
+
+    if (
+      query.quickStatus &&
+      (Object.values(
+        BillboardQuickStatus as Record<string, string>,
+      ) as string[]).includes(query.quickStatus)
+    ) {
+      where.quickStatus = query.quickStatus as BillboardQuickStatus;
+    }
+
+    if (query.search?.trim()) {
+      const search = query.search.trim();
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { address: { neighborhood: { contains: search, mode: "insensitive" } } },
+      ];
+    }
+
+    const items = await prisma.billboard.findMany({
+      where,
+      select: billboardListSelect,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    const total = await prisma.billboard.count({ where });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      success: true,
+      data: items.map(mapBillboardListItem),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
+  /**
+   * Fetches a single active billboard by its UUID or slug.
+   * Non-uuid identifiers are matched against the slug column only
+   * (Prisma would reject malformed input for the id column).
+   */
+  static async getBillboard(idOrSlug: string): Promise<GetBillboardResponse> {
+    const value = idOrSlug.trim();
+
+    const row = await prisma.billboard.findFirst({
+      where: {
+        deletedAt: null,
+        lifecycleStatus: BillboardLifecycleStatus.active,
+        OR: UUID_REGEX.test(value)
+          ? [{ id: value }, { slug: { equals: value, mode: "insensitive" } }]
+          : [{ slug: { equals: value, mode: "insensitive" } }],
+      },
+      select: billboardListSelect,
+    });
+
+    if (!row) {
+      throw new NotFoundError("Billboard not found");
+    }
+
+    return {
+      success: true,
+      data: mapBillboardListItem(row),
+    };
   }
 }
