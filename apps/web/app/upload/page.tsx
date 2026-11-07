@@ -65,6 +65,30 @@ export default function AddBillboardPage() {
     );
   };
 
+  const handleContinue = () => {
+    const next: Errors = {};
+    if (!form.billboardName.trim()) next.name = "Billboard name is required.";
+    if (!form.city.trim() && !form.cityChip)
+      next.city = "Please select or search a city.";
+    if (!form.area.trim()) next.area = "Area / Locality is required.";
+    if (!form.landmark.trim())
+      next.landmark = "Landmark is required to help renters locate the site.";
+    if (!form.billboardType) next.type = "Select a billboard type.";
+    if (!form.width.trim()) next.width = "Width is required.";
+    if (!form.height.trim()) next.height = "Height is required.";
+    if (form.photos.length < 3) {
+      const remaining = 3 - form.photos.length;
+      next.photos = `Add ${remaining} more photo${remaining > 1 ? "s" : ""} to continue.`;
+    }
+    if (!form.monthlyRate.trim()) next.monthlyRate = "Monthly rate is required.";
+
+    setErrors(next);
+    if (Object.keys(next).length > 0) {
+      const first = document.querySelector<HTMLElement>("[data-error='true']");
+      first?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  };
+
   return (
     <>
       <TopNav />
@@ -199,7 +223,7 @@ export default function AddBillboardPage() {
                 monthlyRateError={errors.monthlyRate}
               />
 
-              <FormFooter />
+              <FormFooter onContinueAction={handleContinue} />
             </div>
           </>
         )}

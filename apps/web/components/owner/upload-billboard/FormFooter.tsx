@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 
-export default function FormFooter() {
+export default function FormFooter({
+  onContinueAction,
+}: {
+  onContinueAction: () => void;
+}) {
   return (
     <div className="bg-white border-t border-[#e5e5e5] sticky bottom-0">
       <div className="max-w-225 mx-auto px-8 py-4 flex items-center justify-between">
         <Link href={"/owner/my-inventory"}>
           <button
+            type="button"
+            onClick={onContinueAction}
             style={{ fontFamily: "Inter, sans-serif" }}
             className="h-10 px-4 rounded-sm border border-[#e5e5e5] text-[14px] font-medium text-[#0a0a0a] bg-white cursor-pointer hover:bg-[#f5f5f5] transition-colors"
           >

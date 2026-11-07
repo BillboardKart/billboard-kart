@@ -101,7 +101,7 @@ export default function MyInventoryPage() {
                 <Filter className="size-4" strokeWidth={1.5} />
                 Filter
               </button>
-              <Link href={"/owner/add-billboard"}>
+              <Link href="/upload">
                 <button className="flex h-10 items-center gap-2 rounded-md bg-[#f54900] px-3 text-sm text-white shadow-[0px_1px_1px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#dc4200] cursor-pointer disabled:pointer-events-none">
                   <Plus className="size-4" strokeWidth={1.5} />
                   Add billboard
