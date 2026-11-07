@@ -22,7 +22,8 @@ import { handleGoogleLogin } from "@/lib/google-oauth/login";
 import { fieldVariants, slideUp } from "@/lib/motion";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { CurrentUserResponse } from "@/lib/types";
+import { fetchCurrentUser } from "@/lib/auth/current-user";
+import { useUserStore } from "@/stores/user-store";
 
 export default function AuthPageWrapper() {
   return (
@@ -239,15 +240,13 @@ function AuthPage() {
         const accessToken = data.session?.access_token;
         if (!accessToken) throw new Error("Missing access token.");
 
-        const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/me`;
-        const response = await fetch(endpoint, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const res = await fetchCurrentUser(accessToken);
+        if (!res)
+          throw new Error(
+            "Unable to load a valid user profile from the server.",
+          );
 
-        if (!response.ok)
-          throw new Error("Failed to sync user session with backend database.");
-
-        const res: CurrentUserResponse = await response.json();
+        useUserStore.getState().hydrate(res);
 
         if (!res.authenticated) {
           setError("Authentication failed. Please log in again.");

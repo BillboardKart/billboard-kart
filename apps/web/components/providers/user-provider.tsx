@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 import { createClient } from "@/lib/supabase/client";
-import type { CurrentUserResponse } from "@/lib/types";
+import { fetchCurrentUser } from "@/lib/auth/current-user";
 import { useUserStore } from "@/stores/user-store";
 
 type UserProviderProps = {
@@ -17,38 +17,37 @@ export function UserProvider({ children }: UserProviderProps) {
 
   useEffect(() => {
     let mounted = true;
+    let loadSequence = 0;
 
-    async function loadUser() {
+    async function loadUser(accessToken?: string) {
+      const sequence = ++loadSequence;
       try {
         setLoading(true);
 
-        const supabase = createClient();
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        let token = accessToken;
+        if (!token) {
+          const supabase = createClient();
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          token = session?.access_token;
+        }
 
-        if (!session?.access_token) {
-          if (mounted) clearUser();
+        if (!token) {
+          if (mounted && sequence === loadSequence) clearUser();
           return;
         }
 
-        const endpoint = process.env.NEXT_PUBLIC_API_URL!;
-        const response = await fetch(`${endpoint}/api/v1/user/me`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-
-        if (!response.ok) throw new Error("Unable to fetch current user.");
-
-        const user: CurrentUserResponse = await response.json();
-
-        if (mounted) hydrate(user);
+        const user = await fetchCurrentUser(token);
+        if (mounted && sequence === loadSequence) {
+          if (user) hydrate(user);
+          else clearUser();
+        }
       } catch (err) {
         console.error("[UserProvider]", err);
-        if (mounted) clearUser();
+        if (mounted && sequence === loadSequence) clearUser();
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted && sequence === loadSequence) setLoading(false);
       }
     }
 
@@ -57,10 +56,17 @@ export function UserProvider({ children }: UserProviderProps) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") clearUser();
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") loadUser();
-    });
+    } = supabase.auth.onAuthStateChange(
+      (event: string, session: { access_token: string } | null) => {
+        if (event === "SIGNED_OUT") {
+          loadSequence++;
+          clearUser();
+        }
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          void loadUser(session?.access_token);
+        }
+      },
+    );
 
     return () => {
       mounted = false;
