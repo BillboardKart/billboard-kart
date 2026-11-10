@@ -21,8 +21,8 @@ import { getAuthCallbackUrl, getResetPasswordUrl } from "@/lib/appurl";
 import { handleGoogleLogin } from "@/lib/google-oauth/login";
 import { fieldVariants, slideUp } from "@/lib/motion";
 import { createClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 import { fetchCurrentUser } from "@/lib/auth/current-user";
+import { getRoleHomePath } from "@/lib/auth/role-redirect";
 import { useUserStore } from "@/stores/user-store";
 
 export default function AuthPageWrapper() {
@@ -83,7 +83,19 @@ function AuthPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() => {
+    const description = searchParams.get("error_description");
+    if (description) return description;
+    if (searchParams.get("error")) {
+      return "We couldn't complete authentication. Please try again.";
+    }
+    return "";
+  });
+  const [notice, setNotice] = useState(() =>
+    searchParams.get("reset") === "success"
+      ? "Your password has been updated. Sign in with your new password."
+      : "",
+  );
   const [emailNotConfirmed, setEmailNotConfirmed] = useState(false);
   const [confirmationEmail, setConfirmationEmail] = useState("");
 
@@ -107,6 +119,7 @@ function AuthPage() {
   const switchMode = useCallback((newMode: AuthMode) => {
     setMode(newMode);
     setError("");
+    setNotice("");
     setFieldErrors({});
     setEmailNotConfirmed(false);
 
@@ -127,8 +140,6 @@ function AuthPage() {
 
   function validateField(name: string, value: string) {
     switch (name) {
-      case "businessName":
-        return value.length < 2 ? "Business name is required" : "";
       case "fullName":
         return value.length < 2 ? "Full name is required" : "";
       case "email":
@@ -147,6 +158,7 @@ function AuthPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setNotice("");
     setEmailNotConfirmed(false);
 
     if (isRegister) {
@@ -180,26 +192,33 @@ function AuthPage() {
       const supabase = createClient();
 
       if (isRegister) {
-        // console.log("[Auth] Attempting sign-up for:", email);
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: getAuthCallbackUrl(),
-            data: { full_name: fullName },
+            data: { full_name: fullName.trim() },
           },
         });
 
         if (signUpError) {
-          console.error(
-            "[Auth] Sign-up error:",
-            signUpError.message,
-            signUpError,
-          );
+          const message = signUpError.message.toLowerCase();
+          const isRateLimited =
+            signUpError.status === 429 ||
+            signUpError.code === "over_email_send_rate_limit" ||
+            message.includes("rate limit");
 
-          if (signUpError.message.toLowerCase().includes("rate limit")) {
+          if (isRateLimited) {
             setError(
               "Too many sign-up attempts. Please wait a few minutes before trying again.",
+            );
+          } else if (
+            message.includes("sending confirmation") ||
+            message.includes("sending email") ||
+            message.includes("smtp")
+          ) {
+            setError(
+              "We couldn't send the verification email. Please try again in a few minutes.",
             );
           } else {
             setError(signUpError.message);
@@ -208,7 +227,6 @@ function AuthPage() {
         }
 
         if (data.user && !data.session) {
-          console.log("[Auth] Email confirmation required for: ", email);
           setConfirmationEmail(email);
           return;
         }
@@ -219,13 +237,10 @@ function AuthPage() {
           await supabase.auth.signInWithPassword({ email, password });
 
         if (signInError) {
-          console.error(
-            "[Auth] Sign-in error:",
-            signInError.message,
-            signInError,
-          );
-
-          if (signInError.message === "Email not confirmed") {
+          if (
+            signInError.code === "email_not_confirmed" ||
+            signInError.message === "Email not confirmed"
+          ) {
             setEmailNotConfirmed(true);
           } else if (signInError.status === 429) {
             setError("Too many attempts. Please try again later.");
@@ -236,7 +251,6 @@ function AuthPage() {
           return;
         }
 
-        // const session = await supabase.auth.getSession();
         const accessToken = data.session?.access_token;
         if (!accessToken) throw new Error("Missing access token.");
 
@@ -254,22 +268,11 @@ function AuthPage() {
         }
 
         if (!res.isOnboarded) {
-          // console.log("[Auth] User authenticated but not onboarded in DB. Redirecting...");
-          setError("Authentication failed.");
           router.push("/onboarding");
           return;
         }
 
-        switch (res.user.primaryRole) {
-          case "owner":
-            router.push("/account");
-            break;
-
-          case "advertiser":
-          default:
-            router.push("/browse");
-            break;
-        }
+        router.push(getRoleHomePath(res.user.primaryRole));
       }
     } catch (err) {
       console.error("[Auth] Unexpected error:", err);
@@ -295,21 +298,33 @@ function AuthPage() {
 
   async function handleResendConfirmation() {
     setIsResending(true);
-    try {
-      console.log("[Auth] Resending confirmation email to:", email);
+    setError("");
+    setNotice("");
 
+    try {
       const supabase = createClient();
       const { error: resendError } = await supabase.auth.resend({
         type: "signup",
         email,
+        options: {
+          emailRedirectTo: getAuthCallbackUrl(),
+        },
       });
 
       if (resendError) {
-        console.error("[Auth] Resend error:", resendError.message);
-        setError(resendError.message);
+        if (
+          resendError.status === 429 ||
+          resendError.code === "over_email_send_rate_limit"
+        ) {
+          setError(
+            "Too many confirmation emails requested. Please wait a few minutes before trying again.",
+          );
+        } else {
+          setError(resendError.message);
+        }
       } else {
         setEmailNotConfirmed(false);
-        setError("Confirmation email resent. Check your inbox.");
+        setNotice("Confirmation email resent. Check your inbox.");
       }
     } catch (err) {
       console.error("[Auth] Resend unexpected error:", err);
@@ -386,6 +401,7 @@ function AuthPage() {
 
   async function handleForgotSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setNotice("");
 
     // If already sent, handle the resend logic
     if (isResetSent) {
@@ -394,9 +410,16 @@ function AuthPage() {
       setResetError("");
       try {
         const supabase = createClient();
-        await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: getResetPasswordUrl(),
-        });
+        const { error: resendError } =
+          await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: getResetPasswordUrl(),
+          });
+
+        if (resendError) {
+          setResetError(resendError.message);
+          return;
+        }
+
         startCooldown();
       } catch {
         setResetError("Failed to resend. Please try again.");
@@ -488,349 +511,257 @@ function AuthPage() {
             layout
             className="rounded-3xl bg-card p-8 md:p-12 border border-border shadow-sm"
           >
-            {confirmationEmail ? (
-              <motion.div
-                {...slideUp}
-                className="mx-auto w-full max-w-sm border p-8 text-center"
-              >
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <h1 className="font-soria text-2xl font-normal text-foreground">
-                  Check your email
-                </h1>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  We sent a confirmation link to{" "}
-                  <span className="font-medium text-foreground">
-                    {confirmationEmail}
-                  </span>
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Click the link in the email to activate your account, then
-                  sign in.
-                </p>
-                <Button
-                  variant="outline"
-                  className="mt-6 w-full"
-                  onClick={() => {
-                    setConfirmationEmail("");
-                    switchMode("signin");
-                  }}
+            <>
+              {/* Dynamic Headers */}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={mode + (isResetSent ? "-sent" : "")}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={smoothTransition}
                 >
-                  Go to sign in
-                </Button>
-              </motion.div>
-            ) : (
-              <>
-                {/* Dynamic Headers */}
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={mode + (isResetSent ? "-sent" : "")}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={smoothTransition}
-                  >
-                    {isForgot && isResetSent ? (
-                      <div className="flex flex-col items-center text-center">
-                        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                          <Mail className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-                          Check your email
-                        </h2>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          We sent a password reset link to{" "}
-                          <span className="font-medium text-foreground">
-                            {email}
-                          </span>
-                        </p>
+                  {isForgot && isResetSent ? (
+                    <div className="flex flex-col items-center text-center">
+                      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                        <Mail className="h-5 w-5 text-muted-foreground" />
                       </div>
-                    ) : (
-                      <>
-                        <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-                          {isForgot
-                            ? "Forgot password?"
-                            : isRegister
-                              ? "Create your account"
-                              : "Welcome back"}
-                        </h2>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {isForgot
-                            ? "Enter your email and we'll send you a reset link."
-                            : isRegister
-                              ? "Join thousands of advertisers on BillboardKart"
-                              : "Sign in to your account to continue."}
-                        </p>
-                      </>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
+                      <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+                        Check your email
+                      </h2>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        We sent a password reset link to{" "}
+                        <span className="font-medium text-foreground">
+                          {email}
+                        </span>
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+                        {isForgot
+                          ? "Forgot password?"
+                          : isRegister
+                            ? "Create your account"
+                            : "Welcome back"}
+                      </h2>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {isForgot
+                          ? "Enter your email and we'll send you a reset link."
+                          : isRegister
+                            ? "Join thousands of advertisers on BillboardKart"
+                            : "Sign in to your account to continue."}
+                      </p>
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
 
-                {/* Error Warnings */}
-                <AnimatePresence initial={false}>
-                  {emailNotConfirmed && !isForgot && (
+              {/* Error Warnings */}
+              <AnimatePresence initial={false}>
+                {emailNotConfirmed && !isForgot && (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{
+                      opacity: 1,
+                      height: "auto",
+                      marginTop: "1.5rem",
+                    }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={smoothTransition}
+                    className="mb-2 overflow-hidden rounded-md border border-border bg-muted p-3"
+                  >
+                    <p className="text-sm text-foreground font-medium">
+                      Email not confirmed
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Check your inbox for a confirmation link. Didn&apos;t
+                      receive it?
+                    </p>
+                    <button
+                      type="button"
+                      className="mt-3 flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-xs font-medium text-foreground transition hover:bg-accent disabled:opacity-50"
+                      onClick={() => {
+                        handleResendConfirmation();
+                      }}
+                      disabled={isResending}
+                    >
+                      {isResending && (
+                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      )}
+                      Resend confirmation email
+                    </button>
+                  </motion.div>
+                )}
+
+                {notice && !emailNotConfirmed && (
+                  <motion.p
+                    layout
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{
+                      opacity: 1,
+                      height: "auto",
+                      marginTop: "1.5rem",
+                    }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={smoothTransition}
+                    className="overflow-hidden text-sm text-emerald-600"
+                  >
+                    {notice}
+                  </motion.p>
+                )}
+
+                {(error || resetError) && !emailNotConfirmed && (
+                  <motion.p
+                    layout
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{
+                      opacity: 1,
+                      height: "auto",
+                      marginTop: "1.5rem",
+                    }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={smoothTransition}
+                    className="overflow-hidden text-sm text-destructive"
+                  >
+                    {isForgot ? resetError : error}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              <motion.form
+                layout
+                className="mt-8"
+                onSubmit={isForgot ? handleForgotSubmit : handleSubmit}
+              >
+                {/* Dynamic Inputs Wrapper */}
+                <AnimatePresence initial={false} mode="sync">
+                  {!isResetSent && (
                     <motion.div
                       layout
-                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                      animate={{
-                        opacity: 1,
-                        height: "auto",
-                        marginTop: "1.5rem",
-                      }}
-                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
                       transition={smoothTransition}
-                      className="mb-2 overflow-hidden rounded-md border border-border bg-muted p-3"
+                      className="space-y-5 overflow-hidden"
                     >
-                      <p className="text-sm text-foreground font-medium">
-                        Email not confirmed
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Check your inbox for a confirmation link. Didn&apos;t
-                        receive it?
-                      </p>
-                      <button
-                        type="button"
-                        className="mt-3 flex items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-xs font-medium text-foreground transition hover:bg-accent disabled:opacity-50"
-                        onClick={() => {
-                          handleResendConfirmation();
-                        }}
-                        disabled={isResending}
-                      >
-                        {isResending && (
-                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      {/* Register Fields */}
+                      <AnimatePresence initial={false}>
+                        {isRegister && (
+                          <motion.div
+                            layout
+                            initial="hidden"
+                            animate="visible"
+                            exit="hidden"
+                            variants={fieldVariants}
+                            transition={smoothTransition}
+                            className="overflow-hidden"
+                          >
+                            <div>
+                              <Field label="Full Name">
+                                <IconInput
+                                  icon={<User className="h-4 w-4" />}
+                                  value={fullName}
+                                  onChange={(val) => {
+                                    setFullName(val);
+                                    if (fieldErrors.fullName)
+                                      setFieldErrors((p) => ({
+                                        ...p,
+                                        fullName: "",
+                                      }));
+                                  }}
+                                  placeholder="Jane Doe"
+                                  autoComplete="name"
+                                />
+                              </Field>
+                              {fieldErrors.fullName && (
+                                <p className="mt-1 text-xs text-destructive">
+                                  {fieldErrors.fullName}
+                                </p>
+                              )}
+                            </div>
+                          </motion.div>
                         )}
-                        Resend confirmation email
-                      </button>
-                    </motion.div>
-                  )}
+                      </AnimatePresence>
 
-                  {(error || resetError) && !emailNotConfirmed && (
-                    <motion.p
-                      layout
-                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                      animate={{
-                        opacity: 1,
-                        height: "auto",
-                        marginTop: "1.5rem",
-                      }}
-                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                      transition={smoothTransition}
-                      className={cn(
-                        "text-sm overflow-hidden",
-                        (error || resetError).includes("resent")
-                          ? "text-foreground"
-                          : "text-destructive",
-                      )}
-                    >
-                      {isForgot ? resetError : error}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                      {/* Shared Email Field */}
+                      <motion.div layout>
+                        <Field label="Email address">
+                          <IconInput
+                            icon={<Mail className="h-4 w-4" />}
+                            type="email"
+                            value={email}
+                            onChange={(val) => {
+                              setEmail(val);
+                              if (fieldErrors.email)
+                                setFieldErrors((p) => ({ ...p, email: "" }));
+                            }}
+                            placeholder="jane@company.com"
+                            autoComplete="email"
+                          />
+                        </Field>
+                        {fieldErrors.email && (
+                          <p className="mt-1 text-xs text-destructive">
+                            {fieldErrors.email}
+                          </p>
+                        )}
+                      </motion.div>
 
-                <motion.form
-                  layout
-                  className="mt-8"
-                  onSubmit={isForgot ? handleForgotSubmit : handleSubmit}
-                >
-                  {/* Dynamic Inputs Wrapper */}
-                  <AnimatePresence initial={false} mode="sync">
-                    {!isResetSent && (
-                      <motion.div
-                        layout
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={smoothTransition}
-                        className="space-y-5 overflow-hidden"
-                      >
-                        {/* Register Fields */}
-                        <AnimatePresence initial={false}>
-                          {isRegister && (
-                            <motion.div
-                              layout
-                              initial="hidden"
-                              animate="visible"
-                              exit="hidden"
-                              variants={fieldVariants}
-                              transition={smoothTransition}
-                              className="overflow-hidden"
-                            >
-                              <div className="grid gap-5 sm:grid-cols-2">
-                                <div>
-                                  {fieldErrors.businessName && (
-                                    <p className="mt-1 text-xs text-destructive">
-                                      {fieldErrors.businessName}
-                                    </p>
-                                  )}
-                                </div>
-                                <div>
-                                  <Field label="Full Name">
-                                    <IconInput
-                                      icon={<User className="h-4 w-4" />}
-                                      value={fullName}
-                                      onChange={(val) => {
-                                        setFullName(val);
-                                        if (fieldErrors.fullName)
-                                          setFieldErrors((p) => ({
-                                            ...p,
-                                            fullName: "",
-                                          }));
-                                      }}
-                                      placeholder="Jane Doe"
-                                    />
-                                  </Field>
-                                  {fieldErrors.fullName && (
-                                    <p className="mt-1 text-xs text-destructive">
-                                      {fieldErrors.fullName}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        {/* Shared Email Field */}
-                        <motion.div layout>
-                          <Field label="Email address">
-                            <IconInput
-                              icon={<Mail className="h-4 w-4" />}
-                              type="email"
-                              value={email}
-                              onChange={(val) => {
-                                setEmail(val);
-                                if (fieldErrors.email)
-                                  setFieldErrors((p) => ({ ...p, email: "" }));
-                              }}
-                              placeholder="jane@company.com"
-                            />
-                          </Field>
-                          {fieldErrors.email && (
-                            <p className="mt-1 text-xs text-destructive">
-                              {fieldErrors.email}
-                            </p>
-                          )}
-                        </motion.div>
-
-                        {/* Password Fields (Hidden in Forgot Mode) */}
-                        <AnimatePresence initial={false}>
-                          {!isForgot && (
-                            <motion.div
-                              layout
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={smoothTransition}
-                              className="overflow-hidden"
-                            >
-                              <motion.div layout>
-                                <Field label="Password">
-                                  <IconInput
-                                    icon={<Lock className="h-4 w-4" />}
-                                    type={showPassword ? "text" : "password"}
-                                    value={password}
-                                    onChange={(val) => {
-                                      setPassword(val);
-                                      if (fieldErrors.password)
-                                        setFieldErrors((p) => ({
-                                          ...p,
-                                          password: "",
-                                        }));
-                                    }}
-                                    placeholder={
-                                      isRegister
-                                        ? "Min. 8 characters"
-                                        : "Enter your password"
-                                    }
-                                    trailing={
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setShowPassword((v) => !v)
-                                        }
-                                        className="text-muted-foreground hover:text-foreground transition-colors"
-                                      >
-                                        {showPassword ? (
-                                          <EyeOff className="h-4 w-4" />
-                                        ) : (
-                                          <Eye className="h-4 w-4" />
-                                        )}
-                                      </button>
-                                    }
-                                  />
-                                </Field>
-
-                                {/* Password Strength UI */}
-                                <AnimatePresence initial={false}>
-                                  {isRegister && password.length > 0 && (
-                                    <motion.div
-                                      layout
-                                      initial={{
-                                        opacity: 0,
-                                        height: 0,
-                                        marginTop: 0,
-                                      }}
-                                      animate={{
-                                        opacity: 1,
-                                        height: "auto",
-                                        marginTop: "0.75rem",
-                                      }}
-                                      exit={{
-                                        opacity: 0,
-                                        height: 0,
-                                        marginTop: 0,
-                                      }}
-                                      transition={smoothTransition}
-                                      className="overflow-hidden"
-                                    >
-                                      <div className="flex items-center justify-between text-xs">
-                                        <span className="text-muted-foreground">
-                                          Password strength
-                                        </span>
-                                        <span className="font-medium text-primary">
-                                          {strengthLabels[strength] ||
-                                            strengthLabels[0]}
-                                        </span>
-                                      </div>
-                                      <div className="mt-2 grid grid-cols-4 gap-2">
-                                        {[0, 1, 2, 3].map((i) => (
-                                          <div
-                                            key={i}
-                                            className={`h-1.5 rounded-full transition-colors duration-300 ${i < strength ? "bg-primary" : "bg-muted"}`}
-                                          />
-                                        ))}
-                                      </div>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-
-                                {fieldErrors.password && (
-                                  <p className="mt-1 text-xs text-destructive">
-                                    {fieldErrors.password}
-                                  </p>
-                                )}
-
-                                {/* Trigger: Forgot Password Switch */}
-                                {!isRegister && (
-                                  <motion.div
-                                    layout
-                                    className="mt-3 text-right"
-                                  >
+                      {/* Password Fields (Hidden in Forgot Mode) */}
+                      <AnimatePresence initial={false}>
+                        {!isForgot && (
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={smoothTransition}
+                            className="overflow-hidden"
+                          >
+                            <motion.div layout>
+                              <Field label="Password">
+                                <IconInput
+                                  icon={<Lock className="h-4 w-4" />}
+                                  type={showPassword ? "text" : "password"}
+                                  value={password}
+                                  onChange={(val) => {
+                                    setPassword(val);
+                                    if (fieldErrors.password)
+                                      setFieldErrors((p) => ({
+                                        ...p,
+                                        password: "",
+                                      }));
+                                  }}
+                                  placeholder={
+                                    isRegister
+                                      ? "Min. 8 characters"
+                                      : "Enter your password"
+                                  }
+                                  autoComplete={
+                                    isRegister
+                                      ? "new-password"
+                                      : "current-password"
+                                  }
+                                  trailing={
                                     <button
                                       type="button"
-                                      onClick={() => switchMode("forgot")}
-                                      className="text-xs text-muted-foreground underline hover:text-foreground transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                      onClick={() => setShowPassword((v) => !v)}
+                                      className="text-muted-foreground hover:text-foreground transition-colors"
                                     >
-                                      Forgot password?
+                                      {showPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                      ) : (
+                                        <Eye className="h-4 w-4" />
+                                      )}
                                     </button>
-                                  </motion.div>
-                                )}
-                              </motion.div>
+                                  }
+                                />
+                              </Field>
 
-                              {/* Confirm Password (Register only) */}
+                              {/* Password Strength UI */}
                               <AnimatePresence initial={false}>
-                                {isRegister && (
+                                {isRegister && password.length > 0 && (
                                   <motion.div
                                     layout
                                     initial={{
@@ -841,7 +772,7 @@ function AuthPage() {
                                     animate={{
                                       opacity: 1,
                                       height: "auto",
-                                      marginTop: "1.25rem",
+                                      marginTop: "0.75rem",
                                     }}
                                     exit={{
                                       opacity: 0,
@@ -851,198 +782,260 @@ function AuthPage() {
                                     transition={smoothTransition}
                                     className="overflow-hidden"
                                   >
-                                    <Field label="Confirm password">
-                                      <IconInput
-                                        icon={<Lock className="h-4 w-4" />}
-                                        type="password"
-                                        value={confirmPassword}
-                                        onChange={(val) => {
-                                          setConfirmPassword(val);
-                                          if (fieldErrors.confirmPassword)
-                                            setFieldErrors((p) => ({
-                                              ...p,
-                                              confirmPassword: "",
-                                            }));
-                                        }}
-                                        placeholder="Confirm your password"
-                                      />
-                                    </Field>
-                                    {fieldErrors.confirmPassword && (
-                                      <p className="mt-1 text-xs text-destructive">
-                                        {fieldErrors.confirmPassword}
-                                      </p>
-                                    )}
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="text-muted-foreground">
+                                        Password strength
+                                      </span>
+                                      <span className="font-medium text-primary">
+                                        {strengthLabels[strength] ||
+                                          strengthLabels[0]}
+                                      </span>
+                                    </div>
+                                    <div className="mt-2 grid grid-cols-4 gap-2">
+                                      {[0, 1, 2, 3].map((i) => (
+                                        <div
+                                          key={i}
+                                          className={`h-1.5 rounded-full transition-colors duration-300 ${i < strength ? "bg-primary" : "bg-muted"}`}
+                                        />
+                                      ))}
+                                    </div>
                                   </motion.div>
                                 )}
                               </AnimatePresence>
 
-                              {/* Terms Checkbox */}
-                              <AnimatePresence initial={false}>
-                                {isRegister && (
-                                  <motion.label
-                                    layout
-                                    initial={{
-                                      opacity: 0,
-                                      height: 0,
-                                      marginTop: 0,
-                                    }}
-                                    animate={{
-                                      opacity: 1,
-                                      height: "auto",
-                                      marginTop: "1.25rem",
-                                    }}
-                                    exit={{
-                                      opacity: 0,
-                                      height: 0,
-                                      marginTop: 0,
-                                    }}
-                                    transition={smoothTransition}
-                                    className="flex items-start gap-3 text-sm text-foreground overflow-hidden"
+                              {fieldErrors.password && (
+                                <p className="mt-1 text-xs text-destructive">
+                                  {fieldErrors.password}
+                                </p>
+                              )}
+
+                              {/* Trigger: Forgot Password Switch */}
+                              {!isRegister && (
+                                <motion.div layout className="mt-3 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => switchMode("forgot")}
+                                    className="text-xs text-muted-foreground underline hover:text-foreground transition-colors cursor-pointer disabled:cursor-not-allowed"
                                   >
-                                    <input
-                                      type="checkbox"
-                                      checked={agree}
-                                      onChange={(e) =>
-                                        setAgree(e.target.checked)
-                                      }
-                                      className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer disabled:cursor-not-allowed"
-                                    />
-                                    <span>
-                                      I agree to the{" "}
-                                      <Link
-                                        className="font-medium text-red-600"
-                                        href="#"
-                                      >
-                                        Terms of Service
-                                      </Link>{" "}
-                                      and{" "}
-                                      <Link
-                                        className="font-medium text-red-600"
-                                        href="#"
-                                      >
-                                        Privacy Policy
-                                      </Link>
-                                    </span>
-                                  </motion.label>
-                                )}
-                              </AnimatePresence>
+                                    Forgot password?
+                                  </button>
+                                </motion.div>
+                              )}
                             </motion.div>
-                          )}
-                        </AnimatePresence>
+
+                            {/* Confirm Password (Register only) */}
+                            <AnimatePresence initial={false}>
+                              {isRegister && (
+                                <motion.div
+                                  layout
+                                  initial={{
+                                    opacity: 0,
+                                    height: 0,
+                                    marginTop: 0,
+                                  }}
+                                  animate={{
+                                    opacity: 1,
+                                    height: "auto",
+                                    marginTop: "1.25rem",
+                                  }}
+                                  exit={{
+                                    opacity: 0,
+                                    height: 0,
+                                    marginTop: 0,
+                                  }}
+                                  transition={smoothTransition}
+                                  className="overflow-hidden"
+                                >
+                                  <Field label="Confirm password">
+                                    <IconInput
+                                      icon={<Lock className="h-4 w-4" />}
+                                      type="password"
+                                      value={confirmPassword}
+                                      onChange={(val) => {
+                                        setConfirmPassword(val);
+                                        if (fieldErrors.confirmPassword)
+                                          setFieldErrors((p) => ({
+                                            ...p,
+                                            confirmPassword: "",
+                                          }));
+                                      }}
+                                      placeholder="Confirm your password"
+                                      autoComplete="new-password"
+                                    />
+                                  </Field>
+                                  {fieldErrors.confirmPassword && (
+                                    <p className="mt-1 text-xs text-destructive">
+                                      {fieldErrors.confirmPassword}
+                                    </p>
+                                  )}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+
+                            {/* Terms Checkbox */}
+                            <AnimatePresence initial={false}>
+                              {isRegister && (
+                                <motion.label
+                                  layout
+                                  initial={{
+                                    opacity: 0,
+                                    height: 0,
+                                    marginTop: 0,
+                                  }}
+                                  animate={{
+                                    opacity: 1,
+                                    height: "auto",
+                                    marginTop: "1.25rem",
+                                  }}
+                                  exit={{
+                                    opacity: 0,
+                                    height: 0,
+                                    marginTop: 0,
+                                  }}
+                                  transition={smoothTransition}
+                                  className="flex items-start gap-3 text-sm text-foreground overflow-hidden"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={agree}
+                                    onChange={(e) => setAgree(e.target.checked)}
+                                    className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer disabled:cursor-not-allowed"
+                                  />
+                                  <span>
+                                    I agree to the{" "}
+                                    <Link
+                                      className="font-medium text-red-600"
+                                      href="#"
+                                    >
+                                      Terms of Service
+                                    </Link>{" "}
+                                    and{" "}
+                                    <Link
+                                      className="font-medium text-red-600"
+                                      href="#"
+                                    >
+                                      Privacy Policy
+                                    </Link>
+                                  </span>
+                                </motion.label>
+                              )}
+                            </AnimatePresence>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Form Buttons & Actions Layer */}
+                <motion.div layout className="mt-6 space-y-5">
+                  <motion.button
+                    layout
+                    type="submit"
+                    disabled={
+                      isLoading ||
+                      isGoogleLoading ||
+                      isResetLoading ||
+                      (isForgot && isResetSent && resetCooldown > 0) ||
+                      (isRegister && !agree)
+                    }
+                    className="flex w-full items-center justify-center rounded-sm py-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-70 bg-red-600 hover:bg-red-600/80"
+                  >
+                    {(isLoading || isResetLoading) && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {isForgot && isResetSent
+                      ? resetCooldown > 0
+                        ? `Resend in ${resetCooldown}s`
+                        : "Resend email"
+                      : isForgot
+                        ? "Send reset link"
+                        : isRegister
+                          ? "Create Account"
+                          : "Sign In"}
+                  </motion.button>
+
+                  {/* Back to Login View (Visible in Forgot mode) */}
+                  <AnimatePresence initial={false}>
+                    {isForgot && (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={smoothTransition}
+                        className="text-center overflow-hidden"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => switchMode("signin")}
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:cursor-not-allowed"
+                        >
+                          <ArrowLeft className="h-4 w-4" />
+                          Back to login
+                        </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
 
-                  {/* Form Buttons & Actions Layer */}
-                  <motion.div layout className="mt-6 space-y-5">
-                    <motion.button
-                      layout
-                      type="submit"
-                      disabled={
-                        isLoading ||
-                        isGoogleLoading ||
-                        isResetLoading ||
-                        (isForgot && isResetSent && resetCooldown > 0) ||
-                        (isRegister && !agree)
-                      }
-                      className="flex w-full items-center justify-center rounded-sm py-3.5 text-sm font-semibold text-primary-foreground shadow-sm transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-70 bg-red-600 hover:bg-red-600/80"
-                    >
-                      {(isLoading || isResetLoading) && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      {isForgot && isResetSent
-                        ? resetCooldown > 0
-                          ? `Resend in ${resetCooldown}s`
-                          : "Resend email"
-                        : isForgot
-                          ? "Send reset link"
-                          : isRegister
-                            ? "Create Account"
-                            : "Sign In"}
-                    </motion.button>
+                  {/* Social Login & Modes (Hidden in Forgot mode) */}
+                  <AnimatePresence initial={false}>
+                    {!isForgot && (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={smoothTransition}
+                        className="space-y-5 overflow-hidden"
+                      >
+                        <div className="flex items-center gap-4 py-2">
+                          <div className="h-px flex-1 bg-border" />
+                          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            Or continue with
+                          </span>
+                          <div className="h-px flex-1 bg-border" />
+                        </div>
 
-                    {/* Back to Login View (Visible in Forgot mode) */}
-                    <AnimatePresence initial={false}>
-                      {isForgot && (
-                        <motion.div
-                          layout
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={smoothTransition}
-                          className="text-center overflow-hidden"
-                        >
+                        <div className="grid">
                           <button
                             type="button"
-                            onClick={() => switchMode("signin")}
-                            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            onClick={() => {
+                              onGoogleLogin();
+                            }}
+                            disabled={isGoogleLoading || isLoading}
+                            className="flex items-center justify-center gap-2 rounded-sm border border-border py-3 text-sm font-medium text-foreground transition hover:bg-accent cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                           >
-                            <ArrowLeft className="h-4 w-4" />
-                            Back to login
+                            {isGoogleLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <GoogleIcon />
+                            )}
+                            Continue with Google
                           </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                        </div>
 
-                    {/* Social Login & Modes (Hidden in Forgot mode) */}
-                    <AnimatePresence initial={false}>
-                      {!isForgot && (
-                        <motion.div
-                          layout
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={smoothTransition}
-                          className="space-y-5 overflow-hidden"
-                        >
-                          <div className="flex items-center gap-4 py-2">
-                            <div className="h-px flex-1 bg-border" />
-                            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                              Or continue with
-                            </span>
-                            <div className="h-px flex-1 bg-border" />
-                          </div>
-
-                          <div className="grid">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onGoogleLogin();
-                              }}
-                              disabled={isGoogleLoading || isLoading}
-                              className="flex items-center justify-center gap-2 rounded-sm border border-border py-3 text-sm font-medium text-foreground transition hover:bg-accent cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              {isGoogleLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <GoogleIcon />
-                              )}
-                              Continue with Google
-                            </button>
-                          </div>
-
-                          <p className="pt-2 text-center text-sm text-muted-foreground">
-                            {isRegister
-                              ? "Already have an account? "
-                              : "Don't have an account? "}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                switchMode(isRegister ? "signin" : "register")
-                              }
-                              className="font-semibold cursor-pointer disabled:cursor-not-allowed text-red-600"
-                              disabled={isLoading || isGoogleLoading}
-                            >
-                              {isRegister ? "Sign In" : "Create one"}
-                            </button>
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                </motion.form>
-              </>
-            )}
+                        <p className="pt-2 text-center text-sm text-muted-foreground">
+                          {isRegister
+                            ? "Already have an account? "
+                            : "Don't have an account? "}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              switchMode(isRegister ? "signin" : "register")
+                            }
+                            className="font-semibold cursor-pointer disabled:cursor-not-allowed text-red-600"
+                            disabled={isLoading || isGoogleLoading}
+                          >
+                            {isRegister ? "Sign In" : "Create one"}
+                          </button>
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </motion.form>
+            </>
           </motion.section>
         </div>
       </div>
@@ -1076,6 +1069,7 @@ function IconInput({
   onBlur,
   placeholder,
   type = "text",
+  autoComplete,
   trailing,
 }: {
   icon: React.ReactNode;
@@ -1084,10 +1078,11 @@ function IconInput({
   onBlur?: () => void;
   placeholder?: string;
   type?: string;
+  autoComplete?: string;
   trailing?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-sm border border-border bg-white px-3.5 py-3 transition-colors focus-within:border-primary">
+    <div className="flex w-full items-center gap-2 rounded-sm border border-border bg-white px-3.5 py-3 transition-colors focus-within:border-primary">
       <span className="text-muted-foreground">{icon}</span>
 
       <input
@@ -1096,6 +1091,7 @@ function IconInput({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         placeholder={placeholder}
+        autoComplete={autoComplete}
         className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
       />
 

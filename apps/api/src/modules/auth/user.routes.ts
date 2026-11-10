@@ -14,6 +14,11 @@ export const userRoutes = new Elysia({ prefix: "/user" })
   .post(
     "/onboard",
     async ({ authUser, body, set }) => {
+      if (!authUser?.id) {
+        set.status = 401;
+        return { success: false, error: "Authentication required" };
+      }
+
       const response = await UsersService.onboardUser(authUser, body);
       set.status = 201;
       return response;

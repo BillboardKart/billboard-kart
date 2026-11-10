@@ -31,7 +31,7 @@ export type CurrentUserResponse =
 
 export interface OnboardUserRequest {
   fullName: string;
-  primaryRole: UserRoleCode;
+  primaryRole: Extract<UserRoleCode, "advertiser" | "owner">;
   businessName: string;
   businessUrl?: string | null;
   phone?: string | null;

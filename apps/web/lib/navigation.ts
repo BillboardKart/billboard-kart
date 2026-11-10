@@ -8,11 +8,17 @@ type NavigationItem = {
   label: string;
   icon: LucideIcon;
   ownerOnly?: boolean;
+  advertiserOnly?: boolean;
 };
 
 export const navigationItems: NavigationItem[] = [
   { to: "/browse", label: "Browse", icon: MapPin },
-  { to: "/rentals", label: "My Rentals", icon: FileText },
+  {
+    to: "/rentals",
+    label: "My Rentals",
+    icon: FileText,
+    advertiserOnly: true,
+  },
   {
     to: "/owner/my-inventory",
     label: "My Inventory",
@@ -24,5 +30,9 @@ export const navigationItems: NavigationItem[] = [
 ];
 
 export function getNavigationItems(role: UserRole | null) {
-  return navigationItems.filter((item) => !item.ownerOnly || role === "owner");
+  return navigationItems.filter(
+    (item) =>
+      (!item.ownerOnly || role === "owner") &&
+      (!item.advertiserOnly || role === "advertiser"),
+  );
 }

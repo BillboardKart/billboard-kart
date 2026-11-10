@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { useUserStore } from "@/stores/user-store";
 
 import {
   ArrowLeft,
@@ -17,8 +16,6 @@ import {
 import { FormInput } from "@/components/onboarding/shared/form-input";
 import { ProgressBar } from "@/components/onboarding/shared/progress-bar";
 import { SectionTitle } from "@/components/onboarding/shared/section-title";
-import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -28,28 +25,65 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
-import type { UserRole, City, CurrentUserResponse } from "@/lib/types";
+import { parseCurrentUserResponse } from "@/lib/auth/current-user";
+import { getRoleHomePath } from "@/lib/auth/role-redirect";
 import { createClient } from "@/lib/supabase/client";
+import type { City, UserRole } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { useUserStore } from "@/stores/user-store";
 
-type AdvertiserFlowProps = {
-  selectedRole: UserRole | null;
+type OnboardingFormProps = {
+  selectedRole: UserRole;
   onBackAction: () => void;
 };
 
 const backendEndpoint = process.env.NEXT_PUBLIC_API_URL!;
 
-export function AdvertiserFlow({
+const ROLE_CONTENT: Record<
+  UserRole,
+  {
+    title: string;
+    description: string;
+    businessLabel: string;
+    businessPlaceholder: string;
+    websiteLabel: string;
+    phonePlaceholder: string;
+    fullNameIcon: React.ReactNode;
+  }
+> = {
+  advertiser: {
+    title: "Advertiser onboarding",
+    description:
+      "Tell us a little about yourself so we can personalize your advertising experience.",
+    businessLabel: "Company name",
+    businessPlaceholder: "Acme Advertising Pvt Ltd",
+    websiteLabel: "Website",
+    phonePlaceholder: "+91xxxxxxxxxx",
+    fullNameIcon: <Megaphone className="h-5 w-5" />,
+  },
+  owner: {
+    title: "Billboard owner onboarding",
+    description:
+      "Tell us about your business so we can verify your account and help you publish billboard listings.",
+    businessLabel: "Business name",
+    businessPlaceholder: "Skyline Media Pvt Ltd",
+    websiteLabel: "Business website",
+    phonePlaceholder: "+91-xxxx-xx-xxxx",
+    fullNameIcon: <User className="h-5 w-5" />,
+  },
+};
+
+export function OnboardingForm({
   selectedRole,
   onBackAction,
-}: AdvertiserFlowProps) {
+}: OnboardingFormProps) {
   const router = useRouter();
+  const content = ROLE_CONTENT[selectedRole];
 
   const [fullName, setFullName] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -63,6 +97,7 @@ export function AdvertiserFlow({
 
   const [isLoadingCities, setIsLoadingCities] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const loadCities = async () => {
@@ -76,8 +111,9 @@ export function AdvertiserFlow({
         const data: City[] = await response.json();
 
         setCities(data);
-      } catch (error) {
-        console.error(error);
+      } catch (loadError) {
+        console.error(loadError);
+        setError("Unable to load cities. Please refresh the page.");
       } finally {
         setIsLoadingCities(false);
       }
@@ -91,40 +127,70 @@ export function AdvertiserFlow({
     [cities, selectedCityId],
   );
 
-  const handleCompleteOnboarding = async () => {
-    try {
-      setIsSubmitting(true);
+  const isFormValid =
+    fullName.trim().length >= 2 &&
+    businessName.trim().length >= 2 &&
+    phone.trim().length >= 8 &&
+    selectedCityId.length > 0;
 
+  const handleCompleteOnboarding = async () => {
+    if (!isFormValid) return;
+
+    setError("");
+    setIsSubmitting(true);
+
+    try {
       const {
         data: { session },
       } = await createClient().auth.getSession();
+
+      if (!session?.access_token) {
+        setError("Your session has expired. Please sign in again.");
+        return;
+      }
 
       const response = await fetch(`${backendEndpoint}/api/v1/user/onboard`, {
         method: "POST",
 
         headers: {
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
           "Content-Type": "application/json",
         },
 
         body: JSON.stringify({
-          fullName,
+          fullName: fullName.trim(),
           primaryRole: selectedRole,
-          businessName,
-          businessUrl: businessUrl || undefined,
-          phone,
+          businessName: businessName.trim(),
+          businessUrl: businessUrl.trim() || undefined,
+          phone: phone.trim(),
           cityId: selectedCityId,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to complete onboarding");
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(
+          payload?.error ?? "Failed to complete onboarding. Please try again.",
+        );
+      }
 
-      const data: CurrentUserResponse = await response.json();
+      const data = parseCurrentUserResponse(await response.json());
+
+      if (!data || !data.authenticated || !data.isOnboarded) {
+        throw new Error(
+          "Onboarding could not be verified. Please try again or sign in again.",
+        );
+      }
+
       useUserStore.getState().hydrate(data);
-
-      router.push("/browse");
-    } catch (error) {
-      console.error(error);
+      router.push(getRoleHomePath(data.user.primaryRole));
+    } catch (submitError) {
+      console.error(submitError);
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Failed to complete onboarding. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -144,10 +210,7 @@ export function AdvertiserFlow({
         Back
       </Button>
 
-      <SectionTitle
-        title="Advertiser onboarding"
-        description="Tell us a little about yourself so we can personalize your advertising experience."
-      />
+      <SectionTitle title={content.title} description={content.description} />
 
       <div className="space-y-6">
         <FormInput
@@ -156,12 +219,12 @@ export function AdvertiserFlow({
           value={fullName}
           onChangeAction={setFullName}
           required
-          icon={<Megaphone className="h-5 w-5" />}
+          icon={content.fullNameIcon}
         />
 
         <FormInput
-          label="Company name"
-          placeholder="Acme Advertising Pvt Ltd"
+          label={content.businessLabel}
+          placeholder={content.businessPlaceholder}
           value={businessName}
           onChangeAction={setBusinessName}
           required
@@ -169,7 +232,7 @@ export function AdvertiserFlow({
         />
 
         <FormInput
-          label="Website"
+          label={content.websiteLabel}
           placeholder="https://example.com"
           value={businessUrl}
           onChangeAction={setBusinessUrl}
@@ -178,7 +241,7 @@ export function AdvertiserFlow({
 
         <FormInput
           label="Phone number"
-          placeholder="+91xxxxxxxxxx"
+          placeholder={content.phonePlaceholder}
           value={phone}
           onChangeAction={setPhone}
           required
@@ -250,13 +313,19 @@ export function AdvertiserFlow({
 
         <FormInput
           label="Role"
-          placeholder={selectedRole ?? ""}
-          value={selectedRole ?? ""}
+          placeholder={selectedRole}
+          value={selectedRole}
           onChangeAction={() => {}}
           disabled
           icon={<User className="h-5 w-5" />}
         />
       </div>
+
+      {error && (
+        <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
 
       <div className="flex items-center justify-end gap-3 border-t border-border pt-8">
         <Button
@@ -272,13 +341,7 @@ export function AdvertiserFlow({
         <Button
           type="button"
           onClick={handleCompleteOnboarding}
-          disabled={
-            isSubmitting ||
-            !fullName ||
-            !businessName ||
-            !phone ||
-            !selectedCityId
-          }
+          disabled={isSubmitting || !isFormValid}
           className="rounded-sm bg-red-600 hover:bg-red-500 shadow-sm cursor-pointer"
         >
           {isSubmitting ? "Completing..." : "Complete onboarding"}

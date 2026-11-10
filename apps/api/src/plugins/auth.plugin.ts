@@ -1,5 +1,6 @@
 // api/src/plugin/auth.plugin.ts
-import { createClient } from "@supabase/supabase-js";
+import { prisma, UserStatus, type UserRoleCode } from "@repo/database";
+import { createClient, type User } from "@supabase/supabase-js";
 import { Elysia } from "elysia";
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -12,12 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const authPlugin = (app: Elysia) =>
   app.derive(async ({ request }) => {
-    console.log("\n========== AUTH ==========");
-
     const authorization = request.headers.get("authorization");
-
-    console.log("Authorization Header:");
-    console.log(authorization);
 
     if (!authorization) {
       console.warn("[AUTH] Missing Authorization header.");
@@ -30,15 +26,40 @@ export const authPlugin = (app: Elysia) =>
     }
 
     const token = authorization.substring(7);
-    console.log("[AUTH] Token length:", token.length);
     const { data, error } = await supabase.auth.getUser(token);
 
     if (error) {
-      console.error("[AUTH] Supabase validation failed.");
-      console.error(error);
+      console.error("[AUTH] Supabase validation failed:", error.message);
       return { authUser: null };
     }
 
-    console.log("[AUTH] User authenticated:", data.user.id);
     return { authUser: data.user, token };
   });
+
+export async function authorizeBusinessOperation(
+  authUser: User | null,
+  token: string | undefined,
+  requiredRole: UserRoleCode,
+) {
+  if (!authUser?.id || !token) {
+    return {
+      allowed: false,
+      status: 401,
+      error: "Authentication required",
+    } as const;
+  }
+
+  const account = await prisma.user.findUnique({
+    where: { id: authUser.id },
+    select: { status: true, primaryRole: true },
+  });
+
+  if (
+    account?.status !== UserStatus.active ||
+    account.primaryRole !== requiredRole
+  ) {
+    return { allowed: false, status: 403, error: "Forbidden" } as const;
+  }
+
+  return { allowed: true, authUser, token } as const;
+}

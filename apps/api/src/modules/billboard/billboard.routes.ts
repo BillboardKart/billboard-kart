@@ -1,6 +1,9 @@
 // api/src/modules/billboard/billboard.routes.ts
 import { Elysia, t } from "elysia";
-import { authPlugin } from "@/src/plugins/auth.plugin";
+import {
+  authPlugin,
+  authorizeBusinessOperation,
+} from "@/src/plugins/auth.plugin";
 import {
   BillboardService,
   ValidationError,
@@ -72,9 +75,14 @@ export const billboardRoutes = new Elysia({ prefix: "/billboards" })
   .post(
     "/",
     async ({ authUser, token, request, set }) => {
-      if (!authUser || !token) {
-        set.status = 401;
-        return { success: false, error: "Authentication required" };
+      const authorization = await authorizeBusinessOperation(
+        authUser,
+        token,
+        "owner",
+      );
+      if (!authorization.allowed) {
+        set.status = authorization.status;
+        return { success: false, error: authorization.error };
       }
 
       // Parse FormData
@@ -152,8 +160,8 @@ export const billboardRoutes = new Elysia({ prefix: "/billboards" })
       // Create billboard
       try {
         const result = await BillboardService.createBillboard(
-          authUser,
-          token,
+          authorization.authUser,
+          authorization.token,
           body,
           photos,
           {

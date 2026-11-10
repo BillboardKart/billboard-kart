@@ -4,27 +4,19 @@ import { useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
 
-import { AdvertiserFlow } from "@/components/onboarding/advertiser-flow";
 import { ONBOARDING_ROLES } from "@/components/onboarding/constants";
+import { OnboardingForm } from "@/components/onboarding/onboarding-form";
 import { OnboardingHeader } from "@/components/onboarding/onboarding-header";
-import { OwnerFlow } from "@/components/onboarding/owner-flow";
 import { RoleSelector } from "@/components/onboarding/role-selector";
 import { onboardingTransition } from "@/lib/motion";
 import type { UserRole } from "@/lib/types";
 
 export function Onboarding() {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [step, setStep] = useState<"role" | "advertiser" | "owner">("role");
+  const [step, setStep] = useState<"role" | "form">("role");
 
   const continueAction = () => {
-    if (selectedRole === "advertiser") {
-      setStep("advertiser");
-      return;
-    }
-
-    if (selectedRole === "owner") {
-      setStep("owner");
-    }
+    if (selectedRole) setStep("form");
   };
 
   const backAction = () => {
@@ -65,34 +57,18 @@ export function Onboarding() {
             </motion.div>
           )}
 
-          {step === "advertiser" && (
+          {step === "form" && selectedRole && (
             <motion.div
-              key="advertiser-flow"
+              key={`${selectedRole}-form`}
               initial={{ opacity: 0, x: 32 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -32 }}
               transition={onboardingTransition}
               className="p-10"
             >
-              <AdvertiserFlow
-                onBackAction={backAction}
+              <OnboardingForm
                 selectedRole={selectedRole}
-              />
-            </motion.div>
-          )}
-
-          {step === "owner" && (
-            <motion.div
-              key="owner-flow"
-              initial={{ opacity: 0, x: 32 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -32 }}
-              transition={onboardingTransition}
-              className="p-10"
-            >
-              <OwnerFlow
                 onBackAction={backAction}
-                selectedRole={selectedRole}
               />
             </motion.div>
           )}
