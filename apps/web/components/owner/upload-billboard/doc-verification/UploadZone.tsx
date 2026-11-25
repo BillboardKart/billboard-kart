@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { FileText, Trash2, Upload } from "lucide-react";
 
 type UploadZoneProps = {
@@ -8,6 +8,13 @@ type UploadZoneProps = {
   onFileChangeAction?: (file: File | null) => void;
   className?: string;
 };
+
+const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
+const ALLOWED_DOCUMENT_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+]);
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -21,6 +28,7 @@ export default function UploadZone({
   className,
 }: UploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [fileError, setFileError] = useState("");
 
   const handleClick = () => {
     inputRef.current?.click();
@@ -28,12 +36,24 @@ export default function UploadZone({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] ?? null;
-    onFileChangeAction?.(selected);
+    if (!selected) {
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+    if (!ALLOWED_DOCUMENT_TYPES.has(selected.type)) {
+      setFileError("Choose a PDF, JPG, or PNG file.");
+    } else if (selected.size > MAX_DOCUMENT_SIZE) {
+      setFileError("Documents must be 10 MB or smaller.");
+    } else {
+      setFileError("");
+      onFileChangeAction?.(selected);
+    }
     if (inputRef.current) inputRef.current.value = "";
   };
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setFileError("");
     onFileChangeAction?.(null);
   };
 
@@ -65,6 +85,9 @@ export default function UploadZone({
             <Trash2 className="size-4 text-[#737373]" />
           </button>
         </div>
+        {fileError && (
+          <p className="px-4 pb-3 text-xs text-red-600">{fileError}</p>
+        )}
       </div>
     );
   }
@@ -96,10 +119,11 @@ export default function UploadZone({
             style={{ fontFamily: "Inter, sans-serif" }}
             className="text-xs text-[#737373] leading-4"
           >
-            Accepted formats: PDF, JPG, PNG
+            Accepted formats: PDF, JPG, PNG · Max 10 MB
           </span>
         </div>
       </button>
+      {fileError && <p className="mt-2 text-xs text-red-600">{fileError}</p>}
     </>
   );
 }

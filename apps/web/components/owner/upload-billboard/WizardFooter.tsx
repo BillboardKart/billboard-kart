@@ -17,7 +17,7 @@ export default function WizardFooter({
 }) {
   return (
     <div className="bg-white border-t border-[#e5e5e5] sticky bottom-0 w-full">
-      <div className="max-w-255 mx-auto px-6 sm:px-8 py-4 flex flex-col gap-4">
+      <div className="max-w-200 mx-auto px-6 sm:px-8 py-4 flex flex-col gap-4">
         {submitError && (
           <div
             style={{ fontFamily: "Inter, sans-serif" }}

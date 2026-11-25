@@ -16,6 +16,9 @@ import {
  * GET /api/v1/billboards/:idOrSlug (uuid or slug)
  */
 export const billboardPublicRoutes = new Elysia({ prefix: "/billboards" })
+  .get("/types", async () => {
+    return await BillboardService.getBillboardTypes();
+  })
   .get(
     "/",
     async ({ query }) => {

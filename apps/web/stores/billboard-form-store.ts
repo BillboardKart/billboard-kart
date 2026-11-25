@@ -24,7 +24,7 @@ type BillboardFormStore = {
   setForm: (patch: Partial<BillboardFormState>) => void;
 
   // Photo helpers
-  addPhotos: (files: FileList | null) => void;
+  addPhotos: (files: FileList | File[] | null) => void;
   removePhoto: (idx: number) => void;
 
   // Step navigation
@@ -43,75 +43,80 @@ type BillboardFormStore = {
   reset: () => void;
 };
 
-export const useBillboardFormStore = create<BillboardFormStore>(
-  (set) => ({
-    form: { ...emptyBillboardForm },
-    step: "details",
-    showForm: false,
-    errors: {},
-    isSubmitting: false,
-    submitError: null,
+export const useBillboardFormStore = create<BillboardFormStore>((set, get) => ({
+  form: { ...emptyBillboardForm },
+  step: "details",
+  showForm: false,
+  errors: {},
+  isSubmitting: false,
+  submitError: null,
 
-    updateField: (key, value) =>
-      set((state) => ({
-        form: { ...state.form, [key]: value },
-      })),
+  updateField: (key, value) =>
+    set((state) => ({
+      form: { ...state.form, [key]: value },
+    })),
 
-    setForm: (patch) =>
-      set((state) => ({
-        form: { ...state.form, ...patch },
-      })),
+  setForm: (patch) =>
+    set((state) => ({
+      form: { ...state.form, ...patch },
+    })),
 
-    addPhotos: (files) => {
-      if (!files || files.length === 0) return;
-      const newFiles = Array.from(files);
-      const urls = newFiles.map((f) => URL.createObjectURL(f));
-      set((state) => ({
-        form: {
-          ...state.form,
-          photos: [...state.form.photos, ...urls],
-          photoFiles: [...state.form.photoFiles, ...newFiles],
-        },
-        errors: (() => {
-          const next = { ...state.errors };
-          delete next.photos;
-          return next;
-        })(),
-      }));
-    },
+  addPhotos: (files) => {
+    if (!files || files.length === 0) return;
+    const newFiles = Array.from(files);
+    const urls = newFiles.map((f) => URL.createObjectURL(f));
+    set((state) => ({
+      form: {
+        ...state.form,
+        photos: [...state.form.photos, ...urls],
+        photoFiles: [...state.form.photoFiles, ...newFiles],
+      },
+      errors: (() => {
+        const next = { ...state.errors };
+        delete next.photos;
+        return next;
+      })(),
+    }));
+  },
 
-    removePhoto: (idx) =>
-      set((state) => ({
+  removePhoto: (idx) =>
+    set((state) => {
+      const photoUrl = state.form.photos[idx];
+      if (photoUrl) URL.revokeObjectURL(photoUrl);
+      return {
         form: {
           ...state.form,
           photos: state.form.photos.filter((_, i) => i !== idx),
           photoFiles: state.form.photoFiles.filter((_, i) => i !== idx),
         },
-      })),
+      };
+    }),
 
-    setStep: (step) => set({ step }),
-    setShowForm: (showForm) => set({ showForm }),
+  setStep: (step) => set({ step }),
+  setShowForm: (showForm) => set({ showForm }),
 
-    setErrors: (errors) => set({ errors }),
-    clearError: (key) =>
-      set((state) => {
-        if (!state.errors[key]) return state;
-        const next = { ...state.errors };
-        delete next[key];
-        return { errors: next };
-      }),
+  setErrors: (errors) => set({ errors }),
+  clearError: (key) =>
+    set((state) => {
+      if (!state.errors[key]) return state;
+      const next = { ...state.errors };
+      delete next[key];
+      return { errors: next };
+    }),
 
-    setSubmitting: (isSubmitting) => set({ isSubmitting }),
-    setSubmitError: (submitError) => set({ submitError }),
+  setSubmitting: (isSubmitting) => set({ isSubmitting }),
+  setSubmitError: (submitError) => set({ submitError }),
 
-    reset: () =>
-      set({
-        form: { ...emptyBillboardForm },
-        step: "details",
-        showForm: true,
-        errors: {},
-        isSubmitting: false,
-        submitError: null,
-      }),
-  }),
-);
+  reset: () => {
+    const { form } = get();
+    form.photos.forEach((url) => URL.revokeObjectURL(url));
+    set({
+      form: { ...emptyBillboardForm },
+      step: "details",
+      showForm: true,
+      errors: {},
+      isSubmitting: false,
+      submitError: null,
+    });
+  },
+}));

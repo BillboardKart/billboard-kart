@@ -7,6 +7,7 @@ export interface BillboardFormState {
   // Step 1 — Billboard Details
   billboardName: string;
   city: string;
+  cityId: string;
   area: string;
   landmark: string;
   latitude: string;
@@ -29,7 +30,6 @@ export interface BillboardFormState {
   minBookingDuration: string;
   printingCost: string;
   mapsLink: string;
-  cityChip: string;
 
   // Step 2 — Media Specs
   formatType: "static" | "digital";
@@ -55,10 +55,11 @@ export interface BillboardFormState {
 export const emptyBillboardForm: BillboardFormState = {
   billboardName: "",
   city: "",
+  cityId: "",
   area: "",
   landmark: "",
-  latitude: "19.0760",
-  longitude: "72.8777",
+  latitude: "",
+  longitude: "",
   billboardType: "",
   width: "",
   height: "",
@@ -77,9 +78,11 @@ export const emptyBillboardForm: BillboardFormState = {
   minBookingDuration: "1 month",
   printingCost: "",
   mapsLink: "",
-  cityChip: "",
   formatType: "static",
-  mediaSpecs: {},
+  mediaSpecs: {
+    acceptedArtworkFormats: ["CDR"],
+    acceptedCreativeFormats: ["MP4"],
+  },
   propertyOwnerDetails: "",
   licenseNumber: "",
   licenseExpiryDate: "",

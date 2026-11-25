@@ -1,49 +1,49 @@
 "use client";
 
-import { Field, TextInput } from "./ui";
+import { Field } from "./ui";
 
-const CITIES = ["Mumbai", "Pune", "Bangalore", "Delhi"];
+export type BillboardCityOption = {
+  id: string;
+  name: string;
+  label: string;
+  latitude: number | null;
+  longitude: number | null;
+};
 
 export default function CitySelector({
   value,
-  onChange,
-  chip,
-  onChipChange,
+  options,
+  selectedId,
+  onSelect,
+  isLoading = false,
   error,
 }: {
   value: string;
-  onChange: (v: string) => void;
-  chip: string;
-  onChipChange: (chip: string) => void;
+  options: BillboardCityOption[];
+  selectedId: string;
+  onSelect: (city: BillboardCityOption) => void;
+  isLoading?: boolean;
   error?: string;
 }) {
   return (
     <Field label="City" required error={error}>
       <div data-error={!!error} className="flex flex-col gap-[8px]">
-        <TextInput
+        <input
           value={value}
-          onChange={(v) => {
-            onChange(v);
-            onChipChange(CITIES.includes(v) ? v : "");
-          }}
-          placeholder="Search a city"
-          invalid={!!error}
+          readOnly
+          placeholder={isLoading ? "Loading cities…" : "Choose a city"}
+          aria-invalid={!!error}
+          className="h-11 w-full rounded-xl border border-[#e5e5e5] bg-white px-3 text-sm outline-none placeholder:text-[#737373]"
         />
         <div className="flex flex-wrap gap-[8px]">
-          {CITIES.map((c) => {
-            const active = chip === c;
+          {options.map((city) => {
+            const active = selectedId === city.id;
             return (
               <button
-                key={c}
+                key={city.id}
                 type="button"
                 onClick={() => {
-                  if (active) {
-                    onChipChange("");
-                    onChange("");
-                  } else {
-                    onChipChange(c);
-                    onChange(c);
-                  }
+                  onSelect(city);
                 }}
                 className={`rounded-full px-[13px] py-[9px] text-[12px] leading-[16px] border transition-colors cursor-pointer disabled:pointer-events-none ${
                   active
@@ -51,10 +51,15 @@ export default function CitySelector({
                     : "bg-[#f5f5f5] text-[#171717] border-[#e5e5e5] hover:bg-white"
                 }`}
               >
-                {c}
+                {city.label}
               </button>
             );
           })}
+          {!isLoading && options.length === 0 && (
+            <span className="text-xs text-[#737373]">
+              Pune and Bombay are not available right now.
+            </span>
+          )}
         </div>
       </div>
     </Field>

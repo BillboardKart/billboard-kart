@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { ReactNode } from "react";
 
 export function Input({
   label,
@@ -221,14 +221,17 @@ export function Select({
   );
 }
 
-export function useMultiSelect(initial: string[]) {
-  const [selected, setSelected] = useState<Set<string>>(new Set(initial));
-  const toggle = (v: string) =>
-    setSelected((prev) => {
-      const n = new Set(prev);
-      if (n.has(v)) n.delete(v);
-      else n.add(v);
-      return n;
-    });
+export function createMultiSelect(
+  values: string[],
+  onChange: (values: string[]) => void,
+) {
+  const selected = new Set(values);
+  const toggle = (value: string) => {
+    const next = new Set(selected);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    onChange(Array.from(next));
+  };
+
   return { selected, toggle };
 }

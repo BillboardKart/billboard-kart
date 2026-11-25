@@ -9,17 +9,22 @@ import {
   Input,
   Chip,
   Toggle,
+  createMultiSelect,
 } from "./ui";
 
 function AcceptedArtworkFormats() {
-  const [activeFormat, setActiveFormat] = useState("CDR");
   const fmts = ["CDR", "JPEG", "PNG", "PDF", "AI", "EPS"];
 
   const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
   const updateField = useBillboardFormStore((s) => s.updateField);
 
   const safeMarginBleed = (mediaSpecs.safeMarginBleed as string) ?? "";
-  const minimumResolutionDpi = (mediaSpecs.minimumResolutionDpi as string) ?? "";
+  const minimumResolutionDpi =
+    (mediaSpecs.minimumResolutionDpi as string) ?? "";
+  const formats = createMultiSelect(
+    (mediaSpecs.acceptedArtworkFormats as string[] | undefined) ?? ["CDR"],
+    (values) => setMediaSpec("acceptedArtworkFormats", values),
+  );
 
   const setMediaSpec = (key: string, value: unknown) =>
     updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
@@ -37,8 +42,8 @@ function AcceptedArtworkFormats() {
           <Chip
             key={f}
             label={f}
-            active={activeFormat === f}
-            onClick={() => setActiveFormat(f)}
+            active={formats.selected.has(f)}
+            onClick={() => formats.toggle(f)}
           />
         ))}
       </Toggle>
@@ -68,16 +73,16 @@ function AcceptedArtworkFormats() {
 }
 
 function PrintMaterial() {
-  const [activeMaterial, setActiveMaterial] = useState<string>("Other");
   const mats = ["Flex", "Vinyl", "Backlit flex", "Other"];
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
 
   const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
   const updateField = useBillboardFormStore((s) => s.updateField);
 
   const setMediaSpec = (key: string, value: unknown) =>
     updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
+  const activeMaterial = (mediaSpecs.printMaterial as string) ?? "Other";
+  const selected = (mediaSpecs.otherMaterial as string) ?? null;
 
   return (
     <SectionCard>
@@ -94,7 +99,6 @@ function PrintMaterial() {
             label={m}
             active={activeMaterial === m}
             onClick={() => {
-              setActiveMaterial(m);
               setMediaSpec("printMaterial", m);
             }}
           />
@@ -146,62 +150,25 @@ function PrintMaterial() {
               className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-[#e5e5e5] rounded-lg shadow-lg overflow-hidden"
               style={{ maxHeight: "320px", overflowY: "auto" }}
             >
-              {["Flex", "Vinyl", "Backlit flex", "Canvas", "Mesh"].map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => {
-                    setSelected(opt);
-                    setMediaSpec("otherMaterial", opt);
-                    setDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2.5 text-sm hover:bg-[#f5f5f5] transition-colors cursor-pointer"
-                  style={{ fontFamily: "Inter, sans-serif" }}
-                >
-                  {opt}
-                </button>
-              ))}
+              {["Flex", "Vinyl", "Backlit flex", "Canvas", "Mesh"].map(
+                (opt) => (
+                  <button
+                    key={opt}
+                    onClick={() => {
+                      setMediaSpec("otherMaterial", opt);
+                      setDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2.5 text-sm hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+                    style={{ fontFamily: "Inter, sans-serif" }}
+                  >
+                    {opt}
+                  </button>
+                ),
+              )}
             </div>
           )}
         </div>
       )}
-    </SectionCard>
-  );
-}
-
-function AcceptedArtworkFormat() {
-  const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
-  const updateField = useBillboardFormStore((s) => s.updateField);
-
-  const safeMarginBleed = (mediaSpecs.safeMarginBleed as string) ?? "";
-  const minimumResolutionDpi = (mediaSpecs.minimumResolutionDpi as string) ?? "";
-
-  const setMediaSpec = (key: string, value: unknown) =>
-    updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
-
-  return (
-    <SectionCard>
-      <SectionTitle>Accepted Artwork Format</SectionTitle>
-      <div className="flex gap-4 items-end">
-        <Input
-          label="Safe margin / bleed requirement"
-          value={safeMarginBleed}
-          onChange={(v) => setMediaSpec("safeMarginBleed", v)}
-          placeholder="e.g. 3 inches bleed on all sides"
-        />
-        <Input
-          label="Minimum resolution / DPI"
-          value={minimumResolutionDpi}
-          onChange={(v) => setMediaSpec("minimumResolutionDpi", v)}
-          placeholder="e.g. 150"
-          optional
-        />
-      </div>
-      <p
-        style={{ fontFamily: "Inter, sans-serif" }}
-        className="text-xs text-[#737373]"
-      >
-        Leave blank if not specified
-      </p>
     </SectionCard>
   );
 }
@@ -211,7 +178,6 @@ export default function StaticSections() {
     <>
       <AcceptedArtworkFormats />
       <PrintMaterial />
-      <AcceptedArtworkFormat />
     </>
   );
 }

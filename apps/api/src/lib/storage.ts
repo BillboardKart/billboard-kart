@@ -6,11 +6,7 @@ const BUCKET = "billboard-media";
 const PHOTO_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const DOC_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
-const ALLOWED_IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const ALLOWED_DOC_TYPES = new Set([
   "application/pdf",
@@ -56,7 +52,7 @@ export async function uploadBillboardPhoto(
   token: string,
   billboardId: string,
   file: File,
-): Promise<string> {
+): Promise<{ url: string; path: string }> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
     throw new Error(
       `Invalid photo type "${file.type}". Accepted: JPEG, PNG, WebP.`,
@@ -85,7 +81,7 @@ export async function uploadBillboardPhoto(
     data: { publicUrl },
   } = sb.storage.from(BUCKET).getPublicUrl(path);
 
-  return publicUrl;
+  return { url: publicUrl, path };
 }
 
 /**
@@ -98,7 +94,7 @@ export async function uploadVerificationDoc(
   ownerId: string,
   docType: string,
   file: File,
-): Promise<string> {
+): Promise<{ url: string; path: string }> {
   if (!ALLOWED_DOC_TYPES.has(file.type)) {
     throw new Error(
       `Invalid document type "${file.type}". Accepted: PDF, JPEG, PNG.`,
@@ -127,7 +123,7 @@ export async function uploadVerificationDoc(
     data: { publicUrl },
   } = sb.storage.from(BUCKET).getPublicUrl(path);
 
-  return publicUrl;
+  return { url: publicUrl, path };
 }
 
 /**

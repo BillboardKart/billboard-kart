@@ -210,7 +210,7 @@ export type BillboardPricingGroupByOutputType = {
   billboardId: string
   currencyCode: string
   pricePerDay: runtime.Decimal | null
-  pricePerWeek: runtime.Decimal
+  pricePerWeek: runtime.Decimal | null
   pricePerMonth: runtime.Decimal
   effectiveFrom: Date
   effectiveTo: Date | null
@@ -244,7 +244,7 @@ export type BillboardPricingWhereInput = {
   billboardId?: Prisma.UuidFilter<"BillboardPricing"> | string
   currencyCode?: Prisma.StringFilter<"BillboardPricing"> | string
   pricePerDay?: Prisma.DecimalNullableFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.DecimalNullableFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFilter<"BillboardPricing"> | Date | string
   effectiveTo?: Prisma.DateTimeNullableFilter<"BillboardPricing"> | Date | string | null
@@ -257,7 +257,7 @@ export type BillboardPricingOrderByWithRelationInput = {
   billboardId?: Prisma.SortOrder
   currencyCode?: Prisma.SortOrder
   pricePerDay?: Prisma.SortOrderInput | Prisma.SortOrder
-  pricePerWeek?: Prisma.SortOrder
+  pricePerWeek?: Prisma.SortOrderInput | Prisma.SortOrder
   pricePerMonth?: Prisma.SortOrder
   effectiveFrom?: Prisma.SortOrder
   effectiveTo?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -274,7 +274,7 @@ export type BillboardPricingWhereUniqueInput = Prisma.AtLeast<{
   billboardId?: Prisma.UuidFilter<"BillboardPricing"> | string
   currencyCode?: Prisma.StringFilter<"BillboardPricing"> | string
   pricePerDay?: Prisma.DecimalNullableFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.DecimalNullableFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFilter<"BillboardPricing"> | Date | string
   effectiveTo?: Prisma.DateTimeNullableFilter<"BillboardPricing"> | Date | string | null
@@ -287,7 +287,7 @@ export type BillboardPricingOrderByWithAggregationInput = {
   billboardId?: Prisma.SortOrder
   currencyCode?: Prisma.SortOrder
   pricePerDay?: Prisma.SortOrderInput | Prisma.SortOrder
-  pricePerWeek?: Prisma.SortOrder
+  pricePerWeek?: Prisma.SortOrderInput | Prisma.SortOrder
   pricePerMonth?: Prisma.SortOrder
   effectiveFrom?: Prisma.SortOrder
   effectiveTo?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -306,7 +306,7 @@ export type BillboardPricingScalarWhereWithAggregatesInput = {
   billboardId?: Prisma.UuidWithAggregatesFilter<"BillboardPricing"> | string
   currencyCode?: Prisma.StringWithAggregatesFilter<"BillboardPricing"> | string
   pricePerDay?: Prisma.DecimalNullableWithAggregatesFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalWithAggregatesFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.DecimalNullableWithAggregatesFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalWithAggregatesFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeWithAggregatesFilter<"BillboardPricing"> | Date | string
   effectiveTo?: Prisma.DateTimeNullableWithAggregatesFilter<"BillboardPricing"> | Date | string | null
@@ -315,7 +315,7 @@ export type BillboardPricingScalarWhereWithAggregatesInput = {
 export type BillboardPricingCreateInput = {
   id?: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -328,7 +328,7 @@ export type BillboardPricingUncheckedCreateInput = {
   billboardId: string
   currencyCode: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -337,7 +337,7 @@ export type BillboardPricingUncheckedCreateInput = {
 export type BillboardPricingUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -350,7 +350,7 @@ export type BillboardPricingUncheckedUpdateInput = {
   billboardId?: Prisma.StringFieldUpdateOperationsInput | string
   currencyCode?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -361,7 +361,7 @@ export type BillboardPricingCreateManyInput = {
   billboardId: string
   currencyCode: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -370,7 +370,7 @@ export type BillboardPricingCreateManyInput = {
 export type BillboardPricingUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -381,7 +381,7 @@ export type BillboardPricingUncheckedUpdateManyInput = {
   billboardId?: Prisma.StringFieldUpdateOperationsInput | string
   currencyCode?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -534,7 +534,7 @@ export type BillboardPricingUncheckedUpdateManyWithoutCurrencyNestedInput = {
 export type BillboardPricingCreateWithoutBillboardInput = {
   id?: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -545,7 +545,7 @@ export type BillboardPricingUncheckedCreateWithoutBillboardInput = {
   id?: string
   currencyCode: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -585,7 +585,7 @@ export type BillboardPricingScalarWhereInput = {
   billboardId?: Prisma.UuidFilter<"BillboardPricing"> | string
   currencyCode?: Prisma.StringFilter<"BillboardPricing"> | string
   pricePerDay?: Prisma.DecimalNullableFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.DecimalNullableFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFilter<"BillboardPricing"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFilter<"BillboardPricing"> | Date | string
   effectiveTo?: Prisma.DateTimeNullableFilter<"BillboardPricing"> | Date | string | null
@@ -594,7 +594,7 @@ export type BillboardPricingScalarWhereInput = {
 export type BillboardPricingCreateWithoutCurrencyInput = {
   id?: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -605,7 +605,7 @@ export type BillboardPricingUncheckedCreateWithoutCurrencyInput = {
   id?: string
   billboardId: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -641,7 +641,7 @@ export type BillboardPricingCreateManyBillboardInput = {
   id?: string
   currencyCode: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -650,7 +650,7 @@ export type BillboardPricingCreateManyBillboardInput = {
 export type BillboardPricingUpdateWithoutBillboardInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -661,7 +661,7 @@ export type BillboardPricingUncheckedUpdateWithoutBillboardInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   currencyCode?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -671,7 +671,7 @@ export type BillboardPricingUncheckedUpdateManyWithoutBillboardInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   currencyCode?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -681,7 +681,7 @@ export type BillboardPricingCreateManyCurrencyInput = {
   id?: string
   billboardId: string
   pricePerDay?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth: runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Date | string
   effectiveTo?: Date | string | null
@@ -690,7 +690,7 @@ export type BillboardPricingCreateManyCurrencyInput = {
 export type BillboardPricingUpdateWithoutCurrencyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -701,7 +701,7 @@ export type BillboardPricingUncheckedUpdateWithoutCurrencyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   billboardId?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -711,7 +711,7 @@ export type BillboardPricingUncheckedUpdateManyWithoutCurrencyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   billboardId?: Prisma.StringFieldUpdateOperationsInput | string
   pricePerDay?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  pricePerWeek?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pricePerWeek?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   pricePerMonth?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   effectiveFrom?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   effectiveTo?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -794,7 +794,7 @@ export type $BillboardPricingPayload<ExtArgs extends runtime.Types.Extensions.In
     billboardId: string
     currencyCode: string
     pricePerDay: runtime.Decimal | null
-    pricePerWeek: runtime.Decimal
+    pricePerWeek: runtime.Decimal | null
     pricePerMonth: runtime.Decimal
     effectiveFrom: Date
     effectiveTo: Date | null

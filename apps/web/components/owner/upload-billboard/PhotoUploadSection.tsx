@@ -26,10 +26,13 @@ export default function PhotoUploadSection({
         <input
           ref={fileRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           multiple
           className="hidden"
-          onChange={(e) => onFilesChange(e.target.files)}
+          onChange={(e) => {
+            onFilesChange(e.target.files);
+            e.currentTarget.value = "";
+          }}
         />
         <button
           type="button"

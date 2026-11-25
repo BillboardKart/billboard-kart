@@ -15,7 +15,7 @@ export default function StepHeader({
 
   return (
     <div className="bg-white border-b border-[#e5e5e5] relative w-full">
-      <div className="max-w-255 mx-auto px-6 sm:px-8 pt-6 pb-4 flex flex-col gap-4">
+      <div className="max-w-200 mx-auto px-6 sm:px-8 pt-6 pb-4 flex flex-col gap-4">
         <div className="flex items-center gap-4">
           {onBackAction && (
             <button

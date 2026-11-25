@@ -55,6 +55,9 @@ export type UserMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   businessName: string | null
+  businessContactName: string | null
+  businessContactPhone: string | null
+  businessContactEmail: string | null
   businessUrl: string | null
   gstNumber: string | null
   businessAddress: string | null
@@ -79,6 +82,9 @@ export type UserMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   businessName: string | null
+  businessContactName: string | null
+  businessContactPhone: string | null
+  businessContactEmail: string | null
   businessUrl: string | null
   gstNumber: string | null
   businessAddress: string | null
@@ -103,6 +109,9 @@ export type UserCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   businessName: number
+  businessContactName: number
+  businessContactPhone: number
+  businessContactEmail: number
   businessUrl: number
   gstNumber: number
   businessAddress: number
@@ -139,6 +148,9 @@ export type UserMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   businessName?: true
+  businessContactName?: true
+  businessContactPhone?: true
+  businessContactEmail?: true
   businessUrl?: true
   gstNumber?: true
   businessAddress?: true
@@ -163,6 +175,9 @@ export type UserMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   businessName?: true
+  businessContactName?: true
+  businessContactPhone?: true
+  businessContactEmail?: true
   businessUrl?: true
   gstNumber?: true
   businessAddress?: true
@@ -187,6 +202,9 @@ export type UserCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   businessName?: true
+  businessContactName?: true
+  businessContactPhone?: true
+  businessContactEmail?: true
   businessUrl?: true
   gstNumber?: true
   businessAddress?: true
@@ -298,6 +316,9 @@ export type UserGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   businessName: string
+  businessContactName: string | null
+  businessContactPhone: string | null
+  businessContactEmail: string | null
   businessUrl: string | null
   gstNumber: string | null
   businessAddress: string | null
@@ -345,6 +366,9 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   businessName?: Prisma.StringFilter<"User"> | string
+  businessContactName?: Prisma.StringNullableFilter<"User"> | string | null
+  businessContactPhone?: Prisma.StringNullableFilter<"User"> | string | null
+  businessContactEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessUrl?: Prisma.StringNullableFilter<"User"> | string | null
   gstNumber?: Prisma.StringNullableFilter<"User"> | string | null
   businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
@@ -384,6 +408,9 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   businessName?: Prisma.SortOrder
+  businessContactName?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessContactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessContactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   gstNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   businessAddress?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -427,6 +454,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   businessName?: Prisma.StringFilter<"User"> | string
+  businessContactName?: Prisma.StringNullableFilter<"User"> | string | null
+  businessContactPhone?: Prisma.StringNullableFilter<"User"> | string | null
+  businessContactEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessUrl?: Prisma.StringNullableFilter<"User"> | string | null
   gstNumber?: Prisma.StringNullableFilter<"User"> | string | null
   businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
@@ -466,6 +496,9 @@ export type UserOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   businessName?: Prisma.SortOrder
+  businessContactName?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessContactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessContactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   gstNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   businessAddress?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -498,6 +531,9 @@ export type UserScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   businessName?: Prisma.StringWithAggregatesFilter<"User"> | string
+  businessContactName?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  businessContactPhone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  businessContactEmail?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessUrl?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   gstNumber?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessAddress?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -520,6 +556,9 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -559,6 +598,9 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -594,6 +636,9 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -633,6 +678,9 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -670,6 +718,9 @@ export type UserCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -692,6 +743,9 @@ export type UserUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -716,6 +770,9 @@ export type UserUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -765,6 +822,9 @@ export type UserCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   businessName?: Prisma.SortOrder
+  businessContactName?: Prisma.SortOrder
+  businessContactPhone?: Prisma.SortOrder
+  businessContactEmail?: Prisma.SortOrder
   businessUrl?: Prisma.SortOrder
   gstNumber?: Prisma.SortOrder
   businessAddress?: Prisma.SortOrder
@@ -794,6 +854,9 @@ export type UserMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   businessName?: Prisma.SortOrder
+  businessContactName?: Prisma.SortOrder
+  businessContactPhone?: Prisma.SortOrder
+  businessContactEmail?: Prisma.SortOrder
   businessUrl?: Prisma.SortOrder
   gstNumber?: Prisma.SortOrder
   businessAddress?: Prisma.SortOrder
@@ -818,6 +881,9 @@ export type UserMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   businessName?: Prisma.SortOrder
+  businessContactName?: Prisma.SortOrder
+  businessContactPhone?: Prisma.SortOrder
+  businessContactEmail?: Prisma.SortOrder
   businessUrl?: Prisma.SortOrder
   gstNumber?: Prisma.SortOrder
   businessAddress?: Prisma.SortOrder
@@ -1133,6 +1199,9 @@ export type UserCreateWithoutArtworkUploadsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1171,6 +1240,9 @@ export type UserUncheckedCreateWithoutArtworkUploadsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1221,6 +1293,9 @@ export type UserUpdateWithoutArtworkUploadsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1259,6 +1334,9 @@ export type UserUncheckedUpdateWithoutArtworkUploadsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1293,6 +1371,9 @@ export type UserCreateWithoutOrdersPlacedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1331,6 +1412,9 @@ export type UserUncheckedCreateWithoutOrdersPlacedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1381,6 +1465,9 @@ export type UserUpdateWithoutOrdersPlacedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1419,6 +1506,9 @@ export type UserUncheckedUpdateWithoutOrdersPlacedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1453,6 +1543,9 @@ export type UserCreateWithoutBookingItemsOwnedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1491,6 +1584,9 @@ export type UserUncheckedCreateWithoutBookingItemsOwnedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1541,6 +1637,9 @@ export type UserUpdateWithoutBookingItemsOwnedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1579,6 +1678,9 @@ export type UserUncheckedUpdateWithoutBookingItemsOwnedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1613,6 +1715,9 @@ export type UserCreateWithoutOwnedBillboardsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1651,6 +1756,9 @@ export type UserUncheckedCreateWithoutOwnedBillboardsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1701,6 +1809,9 @@ export type UserUpdateWithoutOwnedBillboardsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1739,6 +1850,9 @@ export type UserUncheckedUpdateWithoutOwnedBillboardsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1773,6 +1887,9 @@ export type UserCreateWithoutContractAcceptancesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1811,6 +1928,9 @@ export type UserUncheckedCreateWithoutContractAcceptancesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1861,6 +1981,9 @@ export type UserUpdateWithoutContractAcceptancesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1899,6 +2022,9 @@ export type UserUncheckedUpdateWithoutContractAcceptancesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1933,6 +2059,9 @@ export type UserCreateWithoutDefaultCityInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -1970,6 +2099,9 @@ export type UserUncheckedCreateWithoutDefaultCityInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2036,6 +2168,9 @@ export type UserScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   businessName?: Prisma.StringFilter<"User"> | string
+  businessContactName?: Prisma.StringNullableFilter<"User"> | string | null
+  businessContactPhone?: Prisma.StringNullableFilter<"User"> | string | null
+  businessContactEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessUrl?: Prisma.StringNullableFilter<"User"> | string | null
   gstNumber?: Prisma.StringNullableFilter<"User"> | string | null
   businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
@@ -2058,6 +2193,9 @@ export type UserCreateWithoutNotificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2096,6 +2234,9 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2146,6 +2287,9 @@ export type UserUpdateWithoutNotificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2184,6 +2328,9 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2218,6 +2365,9 @@ export type UserCreateWithoutAuditLogEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2256,6 +2406,9 @@ export type UserUncheckedCreateWithoutAuditLogEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2306,6 +2459,9 @@ export type UserUpdateWithoutAuditLogEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2344,6 +2500,9 @@ export type UserUncheckedUpdateWithoutAuditLogEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2378,6 +2537,9 @@ export type UserCreateWithoutPaymentMethodsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2416,6 +2578,9 @@ export type UserUncheckedCreateWithoutPaymentMethodsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2466,6 +2631,9 @@ export type UserUpdateWithoutPaymentMethodsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2504,6 +2672,9 @@ export type UserUncheckedUpdateWithoutPaymentMethodsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2538,6 +2709,9 @@ export type UserCreateWithoutPayoutsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2576,6 +2750,9 @@ export type UserUncheckedCreateWithoutPayoutsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2626,6 +2803,9 @@ export type UserUpdateWithoutPayoutsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2664,6 +2844,9 @@ export type UserUncheckedUpdateWithoutPayoutsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2698,6 +2881,9 @@ export type UserCreateWithoutReviewsWrittenInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2736,6 +2922,9 @@ export type UserUncheckedCreateWithoutReviewsWrittenInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2786,6 +2975,9 @@ export type UserUpdateWithoutReviewsWrittenInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2824,6 +3016,9 @@ export type UserUncheckedUpdateWithoutReviewsWrittenInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2858,6 +3053,9 @@ export type UserCreateWithoutTenantInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2895,6 +3093,9 @@ export type UserUncheckedCreateWithoutTenantInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2956,6 +3157,9 @@ export type UserCreateWithoutUserRolesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -2994,6 +3198,9 @@ export type UserUncheckedCreateWithoutUserRolesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -3044,6 +3251,9 @@ export type UserUpdateWithoutUserRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3082,6 +3292,9 @@ export type UserUncheckedUpdateWithoutUserRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3116,6 +3329,9 @@ export type UserCreateWithoutVerificationDocumentsOwnedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -3154,6 +3370,9 @@ export type UserUncheckedCreateWithoutVerificationDocumentsOwnedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -3193,6 +3412,9 @@ export type UserCreateWithoutVerificationDocumentsReviewedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -3231,6 +3453,9 @@ export type UserUncheckedCreateWithoutVerificationDocumentsReviewedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -3281,6 +3506,9 @@ export type UserUpdateWithoutVerificationDocumentsOwnedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3319,6 +3547,9 @@ export type UserUncheckedUpdateWithoutVerificationDocumentsOwnedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3364,6 +3595,9 @@ export type UserUpdateWithoutVerificationDocumentsReviewedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3402,6 +3636,9 @@ export type UserUncheckedUpdateWithoutVerificationDocumentsReviewedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3437,6 +3674,9 @@ export type UserCreateManyDefaultCityInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -3459,6 +3699,9 @@ export type UserUpdateWithoutDefaultCityInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3496,6 +3739,9 @@ export type UserUncheckedUpdateWithoutDefaultCityInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3532,6 +3778,9 @@ export type UserUncheckedUpdateManyWithoutDefaultCityInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3555,6 +3804,9 @@ export type UserCreateManyTenantInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   businessName: string
+  businessContactName?: string | null
+  businessContactPhone?: string | null
+  businessContactEmail?: string | null
   businessUrl?: string | null
   gstNumber?: string | null
   businessAddress?: string | null
@@ -3577,6 +3829,9 @@ export type UserUpdateWithoutTenantInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3614,6 +3869,9 @@ export type UserUncheckedUpdateWithoutTenantInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3650,6 +3908,9 @@ export type UserUncheckedUpdateManyWithoutTenantInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessContactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessContactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   gstNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -3813,6 +4074,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   businessName?: boolean
+  businessContactName?: boolean
+  businessContactPhone?: boolean
+  businessContactEmail?: boolean
   businessUrl?: boolean
   gstNumber?: boolean
   businessAddress?: boolean
@@ -3853,6 +4117,9 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   businessName?: boolean
+  businessContactName?: boolean
+  businessContactPhone?: boolean
+  businessContactEmail?: boolean
   businessUrl?: boolean
   gstNumber?: boolean
   businessAddress?: boolean
@@ -3879,6 +4146,9 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   createdAt?: boolean
   updatedAt?: boolean
   businessName?: boolean
+  businessContactName?: boolean
+  businessContactPhone?: boolean
+  businessContactEmail?: boolean
   businessUrl?: boolean
   gstNumber?: boolean
   businessAddress?: boolean
@@ -3905,12 +4175,15 @@ export type UserSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   businessName?: boolean
+  businessContactName?: boolean
+  businessContactPhone?: boolean
+  businessContactEmail?: boolean
   businessUrl?: boolean
   gstNumber?: boolean
   businessAddress?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "email" | "phone" | "passwordHash" | "fullName" | "avatarUrl" | "primaryRole" | "status" | "defaultCityId" | "defaultLat" | "defaultLng" | "preferredCurrency" | "emailVerifiedAt" | "phoneVerifiedAt" | "createdAt" | "updatedAt" | "businessName" | "businessUrl" | "gstNumber" | "businessAddress", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "tenantId" | "email" | "phone" | "passwordHash" | "fullName" | "avatarUrl" | "primaryRole" | "status" | "defaultCityId" | "defaultLat" | "defaultLng" | "preferredCurrency" | "emailVerifiedAt" | "phoneVerifiedAt" | "createdAt" | "updatedAt" | "businessName" | "businessContactName" | "businessContactPhone" | "businessContactEmail" | "businessUrl" | "gstNumber" | "businessAddress", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   artworkUploads?: boolean | Prisma.User$artworkUploadsArgs<ExtArgs>
   auditLogEntries?: boolean | Prisma.User$auditLogEntriesArgs<ExtArgs>
@@ -3976,6 +4249,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     createdAt: Date
     updatedAt: Date
     businessName: string
+    businessContactName: string | null
+    businessContactPhone: string | null
+    businessContactEmail: string | null
     businessUrl: string | null
     gstNumber: string | null
     businessAddress: string | null
@@ -4435,6 +4711,9 @@ export interface UserFieldRefs {
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly businessName: Prisma.FieldRef<"User", 'String'>
+  readonly businessContactName: Prisma.FieldRef<"User", 'String'>
+  readonly businessContactPhone: Prisma.FieldRef<"User", 'String'>
+  readonly businessContactEmail: Prisma.FieldRef<"User", 'String'>
   readonly businessUrl: Prisma.FieldRef<"User", 'String'>
   readonly gstNumber: Prisma.FieldRef<"User", 'String'>
   readonly businessAddress: Prisma.FieldRef<"User", 'String'>

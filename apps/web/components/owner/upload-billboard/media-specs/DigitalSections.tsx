@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useBillboardFormStore } from "@/stores/billboard-form-store";
 import {
   Input,
@@ -9,7 +8,7 @@ import {
   Select,
   Switch,
   SwitchRow,
-  useMultiSelect,
+  createMultiSelect,
 } from "./ui";
 
 function ScreenResolution() {
@@ -56,10 +55,6 @@ function ScreenResolution() {
 }
 
 function PlaybackCapabilities() {
-  const [animOn, setAnimOn] = useState(true);
-  const [videoOn, setVideoOn] = useState(false);
-  const [audioOn, setAudioOn] = useState(false);
-
   const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
   const updateField = useBillboardFormStore((s) => s.updateField);
 
@@ -67,6 +62,9 @@ function PlaybackCapabilities() {
   const slotDuration = (mediaSpecs.slotDuration as string) ?? "";
   const playsPerHour = (mediaSpecs.playsPerHour as string) ?? "";
   const playsPerDay = (mediaSpecs.playsPerDay as string) ?? "";
+  const animOn = (mediaSpecs.supportsAnimation as boolean | undefined) ?? true;
+  const videoOn = (mediaSpecs.supportsVideo as boolean | undefined) ?? false;
+  const audioOn = (mediaSpecs.supportsAudio as boolean | undefined) ?? false;
 
   const setMediaSpec = (key: string, value: unknown) =>
     updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
@@ -111,10 +109,7 @@ function PlaybackCapabilities() {
         </p>
         <SwitchRow
           on={animOn}
-          onClick={() => {
-            setAnimOn((v) => !v);
-            setMediaSpec("supportsAnimation", !animOn);
-          }}
+          onClick={() => setMediaSpec("supportsAnimation", !animOn)}
           label="Animation / motion graphics"
           icon={
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -172,10 +167,7 @@ function PlaybackCapabilities() {
         />
         <SwitchRow
           on={videoOn}
-          onClick={() => {
-            setVideoOn((v) => !v);
-            setMediaSpec("supportsVideo", !videoOn);
-          }}
+          onClick={() => setMediaSpec("supportsVideo", !videoOn)}
           label="Full-motion video (MP4/H.264)"
           icon={
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -198,10 +190,7 @@ function PlaybackCapabilities() {
         />
         <SwitchRow
           on={audioOn}
-          onClick={() => {
-            setAudioOn((v) => !v);
-            setMediaSpec("supportsAudio", !audioOn);
-          }}
+          onClick={() => setMediaSpec("supportsAudio", !audioOn)}
           label="Audio output"
           icon={
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -235,13 +224,16 @@ function PlaybackCapabilities() {
 }
 
 function AcceptedCreativeFormats() {
-  const formats = useMultiSelect(["MP4"]);
   const fmts = ["MP4", "GIF", "HTML5", "JPEG", "PNG"];
 
   const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
   const updateField = useBillboardFormStore((s) => s.updateField);
 
   const maxFileSizeMb = (mediaSpecs.maxFileSizeMb as string) ?? "";
+  const formats = createMultiSelect(
+    (mediaSpecs.acceptedCreativeFormats as string[] | undefined) ?? ["MP4"],
+    (values) => setMediaSpec("acceptedCreativeFormats", values),
+  );
 
   const setMediaSpec = (key: string, value: unknown) =>
     updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
@@ -259,10 +251,7 @@ function AcceptedCreativeFormats() {
         {fmts.map((f) => (
           <button
             key={f}
-            onClick={() => {
-              formats.toggle(f);
-              setMediaSpec("acceptedCreativeFormats", Array.from(formats.selected));
-            }}
+            onClick={() => formats.toggle(f)}
             style={{ fontFamily: "Inter, sans-serif" }}
             className={`h-[30px] px-3 rounded-lg text-sm font-medium border transition-colors cursor-pointer ${
               formats.selected.has(f)
@@ -293,14 +282,14 @@ function AcceptedCreativeFormats() {
 }
 
 function ConnectivityManagement() {
-  const [weatherOn, setWeatherOn] = useState(false);
-
   const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
   const updateField = useBillboardFormStore((s) => s.updateField);
 
   const connectivityType = (mediaSpecs.connectivityType as string) ?? "";
   const operatingHours = (mediaSpecs.operatingHours as string) ?? "";
   const schedulingType = (mediaSpecs.schedulingType as string) ?? "";
+  const weatherOn =
+    (mediaSpecs.weatherContextTriggers as boolean | undefined) ?? false;
 
   const setMediaSpec = (key: string, value: unknown) =>
     updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
@@ -332,7 +321,6 @@ function ConnectivityManagement() {
         <div className="flex flex-col gap-1.5 flex-1 min-w-0">
           <div
             onClick={() => {
-              setWeatherOn((v) => !v);
               setMediaSpec("weatherContextTriggers", !weatherOn);
             }}
             className="bg-[#fafafa] h-12 rounded-lg relative cursor-pointer"
@@ -366,14 +354,14 @@ function ConnectivityManagement() {
 }
 
 function AdvancedSpecs() {
-  const [remoteOn, setRemoteOn] = useState(true);
-
   const mediaSpecs = useBillboardFormStore((s) => s.form.mediaSpecs);
   const updateField = useBillboardFormStore((s) => s.updateField);
 
   const colourDepth = (mediaSpecs.colourDepth as string) ?? "";
   const ppiDpi = (mediaSpecs.ppiDpi as string) ?? "";
   const contentRefreshRate = (mediaSpecs.contentRefreshRate as string) ?? "";
+  const remoteOn =
+    (mediaSpecs.remoteContentManagement as boolean | undefined) ?? true;
 
   const setMediaSpec = (key: string, value: unknown) =>
     updateField("mediaSpecs", { ...mediaSpecs, [key]: value });
@@ -422,7 +410,6 @@ function AdvancedSpecs() {
             <div className="flex-1 min-w-0">
               <div
                 onClick={() => {
-                  setRemoteOn((v) => !v);
                   setMediaSpec("remoteContentManagement", !remoteOn);
                 }}
                 className="bg-[#fafafa] h-12 rounded-lg relative cursor-pointer"

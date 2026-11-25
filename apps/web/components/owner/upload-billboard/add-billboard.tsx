@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-
-type Option = "single" | "bulk";
+import { Check, Files, LockKeyhole, PanelsTopLeft } from "lucide-react";
 
 function BackIcon() {
   return (
@@ -22,66 +20,17 @@ function BackIcon() {
 function CheckBadge() {
   return (
     <div className="absolute right-4 top-4 flex size-6 items-center justify-center rounded-full bg-[#f54900]">
-      <svg fill="none" height="16" viewBox="0 0 16 16" width="16">
-        <path
-          // d={svgPaths.p39be50}
-          stroke="white"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.33333"
-        />
-      </svg>
+      <Check className="size-4 text-white" aria-hidden="true" />
     </div>
   );
 }
 
 function SingleIcon() {
-  return (
-    <svg fill="none" height="28" viewBox="0 0 28 28" width="28">
-      <path
-        // d={svgPaths.pf321200}
-        stroke="#F54900"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.33333"
-      />
-      <path
-        // d={svgPaths.p13443200}
-        stroke="#F54900"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.33333"
-      />
-    </svg>
-  );
+  return <PanelsTopLeft className="size-7 text-[#F54900]" aria-hidden="true" />;
 }
 
 function BulkIcon() {
-  return (
-    <svg fill="none" height="28" viewBox="0 0 28 28" width="28">
-      <path
-        d="M14 15.166V24.4993"
-        stroke="#F54900"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.33333"
-      />
-      <path
-        // d={svgPaths.p189546e8}
-        stroke="#F54900"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.33333"
-      />
-      <path
-        // d={svgPaths.p4a19780}
-        stroke="#F54900"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.33333"
-      />
-    </svg>
-  );
+  return <Files className="size-7 text-[#a3a3a3]" aria-hidden="true" />;
 }
 
 interface UploadBillboardsSelectorProps {
@@ -90,7 +39,8 @@ interface UploadBillboardsSelectorProps {
 
 interface CardProps {
   selected: boolean;
-  onSelect: () => void;
+  onSelect?: () => void;
+  disabled?: boolean;
   icon: React.ReactNode;
   title: string;
   description: string;
@@ -99,6 +49,7 @@ interface CardProps {
 function OptionCard({
   selected,
   onSelect,
+  disabled = false,
   icon,
   title,
   description,
@@ -107,19 +58,32 @@ function OptionCard({
     <button
       type="button"
       aria-pressed={selected}
+      aria-disabled={disabled}
+      disabled={disabled}
       onClick={onSelect}
-      className={`relative flex flex-1 min-w-px flex-col items-start gap-4 rounded-md p-6 text-left transition-colors duration-200 ${
+      className={`relative flex flex-1 min-w-px flex-col items-start gap-4 rounded-2xl p-6 text-left transition-colors duration-200 ${
         selected
           ? "bg-white border border-[#f5f5f5] shadow-sm"
-          : "bg-[#f5f5f5] border border-transparent hover:bg-[#efefef] cursor-pointer disabled:pointer-events-none"
+          : "bg-[#f5f5f5] border border-transparent"
       }`}
     >
       {selected && <CheckBadge />}
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-[rgba(245,73,0,0.12)]">
-        {icon}
+      {disabled && (
+        <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-[#e5e5e5] px-2 py-1 text-xs text-[#737373]">
+          <LockKeyhole className="size-3" aria-hidden="true" /> Locked
+        </span>
+      )}
+      <div
+        className={`flex size-14 items-center justify-center rounded-2xl ${disabled ? "bg-[#e5e5e5]" : "bg-[rgba(245,73,0,0.12)]"}`}
+      >
+        <span className={disabled ? "opacity-50 grayscale" : ""}>{icon}</span>
       </div>
       <div className="flex flex-col items-start">
-        <p className="text-[18px] leading-7 text-[#0a0a0a]">{title}</p>
+        <p
+          className={`text-[18px] leading-7 ${disabled ? "text-[#737373]" : "text-[#0a0a0a]"}`}
+        >
+          {title}
+        </p>
         <p className="text-[14px] leading-[22.75px] text-[#737373]">
           {description}
         </p>
@@ -131,10 +95,8 @@ function OptionCard({
 export default function UploadBillboardsSelector({
   onContinue,
 }: UploadBillboardsSelectorProps) {
-  const [selected, setSelected] = useState<Option>("single");
-
   return (
-    <div className="flex min-h-screen w-full flex-col items-center bg-white px-12 pt-12 pb-32">
+    <div className="flex min-h-screen w-full flex-col items-center bg-white px-6 pt-8 pb-24 sm:px-12 sm:pt-12 sm:pb-32">
       <div className="flex w-200 max-w-full flex-col gap-8">
         {/* Header */}
         <div className="flex w-full items-center justify-between">
@@ -162,17 +124,16 @@ export default function UploadBillboardsSelector({
         </p>
 
         {/* Options */}
-        <div className="flex w-full items-stretch justify-center gap-6">
+        <div className="flex w-full flex-col items-stretch justify-center gap-6 sm:flex-row">
           <OptionCard
-            selected={selected === "single"}
-            onSelect={() => setSelected("single")}
+            selected
             icon={<SingleIcon />}
             title="Add one billboard manually"
             description="Best for a single site. Walk through billboard details, photos, and pricing step by step."
           />
           <OptionCard
-            selected={selected === "bulk"}
-            onSelect={() => setSelected("bulk")}
+            selected={false}
+            disabled
             icon={<BulkIcon />}
             title="Bulk upload billboards"
             description="Best for many sites at once. Upload a CSV or XLSX spreadsheet and add images afterward."
@@ -183,9 +144,8 @@ export default function UploadBillboardsSelector({
         <div className="flex w-full items-start gap-4 rounded-2xl bg-[#f5f5f5] p-6">
           <div className="pt-0.5">{/** <InfoIcon /> */}</div>
           <p className="text-[14px] leading-[22.75px] text-[#737373]">
-            {selected === "single"
-              ? "Manually added billboards let you complete every detail up front — images, documents, pricing, and media specs — before publishing."
-              : "Bulk-uploaded billboards are created as drafts first. They become ready for review once images, documents, pricing, and media specs are complete."}
+            Manually added billboards let you complete every detail up front —
+            images, documents, pricing, and media specs — before publishing.
           </p>
         </div>
 
@@ -194,7 +154,7 @@ export default function UploadBillboardsSelector({
           <button
             type="button"
             onClick={onContinue}
-            className="flex h-12 w-100 max-w-full items-center justify-center rounded-sm bg-[#f54900] px-4 text-[16px] text-white shadow-sm transition-opacity hover:opacity-90 cursor-pointer disabled:pointer-events-none"
+            className="flex h-12 w-100 max-w-full items-center justify-center rounded-xl bg-[#f54900] px-4 text-[16px] text-white shadow-sm transition-opacity hover:opacity-90 cursor-pointer disabled:pointer-events-none"
           >
             Continue
           </button>

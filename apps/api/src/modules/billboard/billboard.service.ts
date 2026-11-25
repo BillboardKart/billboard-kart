@@ -62,7 +62,6 @@ function parseBool(value: string | undefined, fallback: boolean): boolean {
 interface ValidationResult {
   valid: true;
   billboardName: string;
-  billboardTypeId: string;
   cityId: string;
   area: string;
   landmark: string;
@@ -90,10 +89,28 @@ function validate(body: CreateBillboardRequest): ValidationResult {
   const width = parseDecimal(body.widthFt);
   const height = parseDecimal(body.heightFt);
   const monthlyRate = parseDecimal(body.monthlyRate);
+  const latitude = body.latitude?.trim()
+    ? Number.parseFloat(body.latitude)
+    : Number.NaN;
+  const longitude = body.longitude?.trim()
+    ? Number.parseFloat(body.longitude)
+    : Number.NaN;
 
   if (!width) errors.widthFt = "Required and must be a valid number";
   if (!height) errors.heightFt = "Required and must be a valid number";
   if (!monthlyRate) errors.monthlyRate = "Required and must be a valid number";
+  if (
+    body.latitude?.trim() &&
+    (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)
+  ) {
+    errors.latitude = "Enter a valid latitude.";
+  }
+  if (
+    body.longitude?.trim() &&
+    (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)
+  ) {
+    errors.longitude = "Enter a valid longitude.";
+  }
 
   if (Object.keys(errors).length > 0) {
     throw new ValidationError(errors);
@@ -102,15 +119,14 @@ function validate(body: CreateBillboardRequest): ValidationResult {
   return {
     valid: true,
     billboardName: body.billboardName.trim(),
-    billboardTypeId: "", // resolved later
     cityId: body.cityId.trim(),
     area: body.area.trim(),
     landmark: body.landmark.trim(),
     widthFt: width!,
     heightFt: height!,
     monthlyRate: monthlyRate!,
-    latitude: Number.parseFloat(body.latitude || "19.0760") || 19.076,
-    longitude: Number.parseFloat(body.longitude || "72.8777") || 72.8777,
+    latitude,
+    longitude,
     illumination: parseBool(body.illumination, false),
     isAvailable: parseBool(body.isAvailable, true),
     minBookingDuration: body.minBookingDuration?.trim() || "1 month",
@@ -243,6 +259,14 @@ const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export class BillboardService {
+  static async getBillboardTypes() {
+    return prisma.billboardType.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, code: true },
+      orderBy: { name: "asc" },
+    });
+  }
+
   /**
    * Creates a complete billboard listing in a single transaction.
    *
@@ -284,19 +308,56 @@ export class BillboardService {
       );
     }
 
+    const cityRows = await prisma.$queryRaw<
+      Array<{ id: string; latitude: number | null; longitude: number | null }>
+    >`
+      SELECT
+        id::text AS id,
+        ST_Y(centroid::geometry) AS latitude,
+        ST_X(centroid::geometry) AS longitude
+      FROM cities
+      WHERE id = ${v.cityId}::uuid
+        AND country_code = 'IN'
+        AND lower(name) IN ('pune', 'mumbai', 'bombay')
+      LIMIT 1;
+    `;
+    const city = cityRows[0];
+    if (!city) {
+      throw new ValidationError({ cityId: "Choose Pune or Bombay." });
+    }
+    if (!Number.isFinite(v.latitude)) {
+      if (city.latitude === null) {
+        throw new ValidationError({
+          latitude: "Pin the billboard location on the map.",
+        });
+      }
+      v.latitude = city.latitude;
+    }
+    if (!Number.isFinite(v.longitude)) {
+      if (city.longitude === null) {
+        throw new ValidationError({
+          longitude: "Pin the billboard location on the map.",
+        });
+      }
+      v.longitude = city.longitude;
+    }
+
+    // Allocate the id before storage uploads so files can use their final owner path.
+    const billboardId = crypto.randomUUID();
+
     // Upload photos to storage (before transaction — external I/O)
-    const photoUrls: Array<{ url: string; originalName: string }> = [];
+    const photoUploads: Array<{ url: string; path: string }> = [];
 
     try {
       for (const photo of photos) {
-        const url = await uploadBillboardPhoto(token, "pending", photo);
-        photoUrls.push({ url, originalName: photo.name });
+        const uploaded = await uploadBillboardPhoto(token, billboardId, photo);
+        photoUploads.push(uploaded);
       }
     } catch (error) {
       // If any photo upload fails, clean up already-uploaded ones
       await deleteStorageFiles(
         token,
-        photoUrls.map((p) => p.url),
+        photoUploads.map((p) => p.path),
       );
       throw error;
     }
@@ -305,6 +366,7 @@ export class BillboardService {
     const docUploads: Array<{
       docType: string;
       url: string;
+      path: string;
       file: File;
     }> = [];
 
@@ -319,19 +381,19 @@ export class BillboardService {
     try {
       for (const [docType, file] of docEntries) {
         if (!file) continue;
-        const url = await uploadVerificationDoc(
+        const uploaded = await uploadVerificationDoc(
           token,
           authUser.id,
           docType,
           file,
         );
-        docUploads.push({ docType, url, file });
+        docUploads.push({ docType, ...uploaded, file });
       }
     } catch (error) {
       // Clean up all uploaded files (photos + docs)
       const allPaths = [
-        ...photoUrls.map((p) => p.url),
-        ...docUploads.map((d) => d.url),
+        ...photoUploads.map((p) => p.path),
+        ...docUploads.map((d) => d.path),
       ];
       await deleteStorageFiles(token, allPaths);
       throw error;
@@ -369,6 +431,7 @@ export class BillboardService {
 
         const billboard = await tx.billboard.create({
           data: {
+            id: billboardId,
             ownerId: authUser.id,
             billboardTypeId: billboardType.id,
             addressId: address.id,
@@ -380,7 +443,7 @@ export class BillboardService {
             sizeDisplay,
             visibilityLabel: body.visibilityNotes?.trim() || null,
             dailyReach: v.dailyReach,
-            lifecycleStatus: BillboardLifecycleStatus.draft,
+            lifecycleStatus: BillboardLifecycleStatus.active,
             quickStatus: v.isAvailable
               ? BillboardQuickStatus.available
               : BillboardQuickStatus.maintenance,
@@ -397,10 +460,18 @@ export class BillboardService {
           },
         });
 
+        await tx.billboardPricing.create({
+          data: {
+            billboardId: billboard.id,
+            currencyCode: "INR",
+            pricePerMonth: v.monthlyRate,
+          },
+        });
+
         // Create BillboardMedia (batch — single query)
-        if (photoUrls.length > 0) {
+        if (photoUploads.length > 0) {
           await tx.billboardMedia.createMany({
-            data: photoUrls.map((p, i) => ({
+            data: photoUploads.map((p, i) => ({
               billboardId: billboard.id,
               fileUrl: p.url,
               fileType: MediaFileType.image,
@@ -509,12 +580,21 @@ export class BillboardService {
         }
 
         // Update User with GST / business info (if provided)
-        if (body.gstNumber || body.businessAddress) {
+        if (
+          body.gstNumber ||
+          body.businessAddress ||
+          body.contactPersonName ||
+          body.contactPhone ||
+          body.contactEmail
+        ) {
           await tx.user.update({
             where: { id: authUser.id },
             data: {
               gstNumber: body.gstNumber?.trim() || undefined,
               businessAddress: body.businessAddress?.trim() || undefined,
+              businessContactName: body.contactPersonName?.trim() || undefined,
+              businessContactPhone: body.contactPhone?.trim() || undefined,
+              businessContactEmail: body.contactEmail?.trim() || undefined,
             },
           });
         }
@@ -589,8 +669,8 @@ export class BillboardService {
     } catch (error) {
       // If transaction fails, clean up all uploaded files
       const allPaths = [
-        ...photoUrls.map((p) => p.url),
-        ...docUploads.map((d) => d.url),
+        ...photoUploads.map((p) => p.path),
+        ...docUploads.map((d) => d.path),
       ];
       await deleteStorageFiles(token, allPaths);
       throw error;
@@ -636,9 +716,11 @@ export class BillboardService {
 
     if (
       query.quickStatus &&
-      (Object.values(
-        BillboardQuickStatus as Record<string, string>,
-      ) as string[]).includes(query.quickStatus)
+      (
+        Object.values(
+          BillboardQuickStatus as Record<string, string>,
+        ) as string[]
+      ).includes(query.quickStatus)
     ) {
       where.quickStatus = query.quickStatus as BillboardQuickStatus;
     }
@@ -647,7 +729,9 @@ export class BillboardService {
       const search = query.search.trim();
       where.OR = [
         { name: { contains: search, mode: "insensitive" } },
-        { address: { neighborhood: { contains: search, mode: "insensitive" } } },
+        {
+          address: { neighborhood: { contains: search, mode: "insensitive" } },
+        },
       ];
     }
 
