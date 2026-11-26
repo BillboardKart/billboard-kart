@@ -3,13 +3,17 @@
 import { BillboardCard } from "@/components/app/BillboardCard";
 import { MapView } from "@/components/app/MapView";
 import { TopNav } from "@/components/app/TopNav";
-import { BILLBOARDS, type Billboard } from "@/lib/billboards";
+import { getRoleHomePath } from "@/lib/auth/role-redirect";
 import {
-  fetchBillboardsPage,
-  type BillboardsPageResult,
-  type PaginationMeta,
+  fetchAdvertiserBillboardsPage,
+  AdvertiserApiError,
+} from "@/lib/advertiser-api";
+import type {
+  BillboardsPageResult,
+  PaginationMeta,
 } from "@/lib/billboard-api";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/stores/user-store";
 import {
   ChevronLeft,
   ChevronRight,
@@ -24,58 +28,77 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-const FALLBACK:{
-  billboards: Billboard[];
-  pagination: PaginationMeta;
-  } = {
-  billboards: BILLBOARDS,
-  pagination: {
-    page: 1,
-    limit: BILLBOARDS.length,
-    total: BILLBOARDS.length,
-    totalPages: 1,
-    hasNext: false,
-    hasPrev: false,
-  },
-};
-
 export default function BrowsePage() {
   const router = useRouter();
+
+  const user = useUserStore((state) => state.user);
+  const isUserLoading = useUserStore((state) => state.isLoading);
+
   const [filter, setFilter] = useState<string>("All");
 
   const [result, setResult] = useState<BillboardsPageResult | null>(null);
-  const [fallbackActive, setFallbackActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   const [activeId, setActiveId] = useState<string>("");
   const [view, setView] = useState<"list" | "map">("map");
 
-  const loadPage = useCallback(async (targetPage: number) => {
-    setIsLoading(true);
-    try {
-      const data = await fetchBillboardsPage(targetPage);
-      setResult(data);
-      setFallbackActive(false);
-      setActiveId(data.billboards[0]?.id ?? "");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch {
-      setResult(FALLBACK);
-      setFallbackActive(true);
-      setActiveId(FALLBACK.billboards[0]?.id ?? "");
-    } finally {
-      setIsLoading(false);
+  const isAdvertiser =
+    user?.authenticated === true &&
+    user.isOnboarded === true &&
+    user.primaryRole === "advertiser";
+
+  // Role gate: advertisers only. Unauthenticated users go to login,
+  // other roles go to their own home. The API enforces this again
+  // server-side — this is only a UX redirect.
+  useEffect(() => {
+    if (isUserLoading) return;
+
+    if (!user?.authenticated || !user.isOnboarded) {
+      router.replace("/login");
+      return;
     }
-  }, []);
+
+    if (user.primaryRole !== "advertiser") {
+      router.replace(getRoleHomePath(user.primaryRole));
+    }
+  }, [isUserLoading, user, router]);
+
+  const loadPage = useCallback(
+    async (targetPage: number) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await fetchAdvertiserBillboardsPage(targetPage);
+        setResult(data);
+        setActiveId(data.billboards[0]?.id ?? "");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (err) {
+        setResult(null);
+        if (err instanceof AdvertiserApiError && err.status === 401) {
+          router.replace("/login");
+          return;
+        }
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load billboards. Please try again.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [router],
+  );
 
   useEffect(() => {
-    loadPage(page);
-  }, [loadPage, page]);
+    if (isAdvertiser) {
+      loadPage(page);
+    }
+  }, [isAdvertiser, loadPage, page]);
 
-  const billboards = useMemo(
-    () => result?.billboards ?? [],
-    [result],
-  );
+  const billboards = useMemo(() => result?.billboards ?? [], [result]);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -94,6 +117,20 @@ export default function BrowsePage() {
   const active = filtered.find((b) => b.id === activeId) ?? filtered[0];
 
   const pagination = result?.pagination;
+  const headingCity = billboards[0]?.city;
+
+  // While the session/role is resolving, show a neutral loading state.
+  if (isUserLoading || (!isAdvertiser && user?.authenticated)) {
+    return (
+      <div className="min-h-screen bg-background">
+        <TopNav />
+        <main className="mx-auto w-full max-w-350 px-4 py-6 sm:px-6 lg:px-10">
+          <div className="h-8 w-64 animate-pulse rounded-lg bg-secondary" />
+          <div className="mt-6 h-10 w-full animate-pulse rounded-xl bg-secondary" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,7 +140,9 @@ export default function BrowsePage() {
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:items-end sm:justify-between">
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl">
-              Billboards in New York, NY
+              {headingCity
+                ? `Billboards in ${headingCity}`
+                : "Browse Billboards"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {pagination
@@ -139,10 +178,19 @@ export default function BrowsePage() {
           </div>
         </div>
 
-        {fallbackActive && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            <TriangleAlert className="h-4 w-4 shrink-0" />
-            Live data unavailable — showing sample listings.
+        {error && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <span className="flex items-center gap-2">
+              <TriangleAlert className="h-4 w-4 shrink-0" />
+              {error}
+            </span>
+            <button
+              type="button"
+              onClick={() => loadPage(page)}
+              className="shrink-0 rounded-lg border border-red-300 bg-background px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100"
+            >
+              Retry
+            </button>
           </div>
         )}
 
@@ -201,7 +249,31 @@ export default function BrowsePage() {
                 </div>
               ))}
 
+            {!isLoading && !error && filtered.length === 0 && (
+              <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-card px-6 py-12 text-center">
+                <MapPin className="h-8 w-8 text-muted-foreground" />
+                <p className="text-sm font-semibold text-foreground">
+                  No billboards found
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {filter === "All"
+                    ? "There are no published billboards available right now. Check back later."
+                    : `No billboards match the "${filter}" filter on this page.`}
+                </p>
+                {filter !== "All" && (
+                  <button
+                    type="button"
+                    onClick={() => setFilter("All")}
+                    className="mt-2 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-secondary"
+                  >
+                    Clear filter
+                  </button>
+                )}
+              </div>
+            )}
+
             {!isLoading &&
+              !error &&
               filtered.map((b) => (
                 <BillboardCard
                   key={b.id}
@@ -215,7 +287,7 @@ export default function BrowsePage() {
                 />
               ))}
 
-            {!isLoading && pagination && (
+            {!isLoading && !error && pagination && filtered.length > 0 && (
               <div className="mt-2 flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3">
                 <button
                   type="button"

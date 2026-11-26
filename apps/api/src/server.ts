@@ -5,6 +5,7 @@ import { userRoutes } from "@/src/modules/auth/user.routes";
 import { cityRoutes } from "@/src/modules/city/city.routes";
 import { billboardRoutes } from "@/src/modules/billboard/billboard.routes";
 import { billboardPublicRoutes } from "@/src/modules/billboard/billboard.routes";
+import { advertiserRoutes } from "@/src/modules/advertiser/advertiser.routes";
 import { healthRoutes } from "@/src/modules/health/health.routes";
 
 const required = [
@@ -81,6 +82,7 @@ const app = new Elysia({ prefix: "/api/v1" })
   .use(cityRoutes)
   .use(billboardRoutes)
   .use(billboardPublicRoutes)
+  .use(advertiserRoutes)
   .use(healthRoutes)
 
   .listen(process.env.PORT ?? 3001);

@@ -170,7 +170,7 @@ export async function fetchBillboardsPage(
   };
 }
 
-interface SingleBillboardResponse {
+export interface SingleBillboardResponse {
   success: boolean;
   data?: BillboardApiListResponse;
 }

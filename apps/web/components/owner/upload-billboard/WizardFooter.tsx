@@ -62,7 +62,7 @@ export default function WizardFooter({
                   ? "Continue to Media Specs"
                   : step === 2
                     ? "Continue to Documents"
-                    : "Save & Submit for Review"}
+                    : "Save & Submit"}
             </button>
           </div>
         </div>
