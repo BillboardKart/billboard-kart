@@ -1,7 +1,23 @@
 // api/src/lib/storage.ts
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const BUCKET = "billboard-media";
+const BUCKET = process.env.SUPABASE_STORAGE_BUCKET ?? "billboard-media";
+
+/** Client-side file validation failure (bad type/size) — maps to HTTP 400. */
+export class StorageValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StorageValidationError";
+  }
+}
+
+/** Supabase Storage API failure (bucket missing, RLS denial, network) — maps to HTTP 502. */
+export class StorageError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StorageError";
+  }
+}
 
 const PHOTO_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const DOC_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -54,12 +70,12 @@ export async function uploadBillboardPhoto(
   file: File,
 ): Promise<{ url: string; path: string }> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    throw new Error(
+    throw new StorageValidationError(
       `Invalid photo type "${file.type}". Accepted: JPEG, PNG, WebP.`,
     );
   }
   if (file.size > PHOTO_MAX_BYTES) {
-    throw new Error(
+    throw new StorageValidationError(
       `Photo "${file.name}" exceeds 5 MB limit (${(file.size / 1024 / 1024).toFixed(1)} MB).`,
     );
   }
@@ -74,7 +90,7 @@ export async function uploadBillboardPhoto(
     .upload(path, file, { contentType: file.type, upsert: false });
 
   if (error) {
-    throw new Error(`Photo upload failed: ${error.message}`);
+    throw new StorageError(`Photo upload failed: ${error.message}`);
   }
 
   const {
@@ -96,12 +112,12 @@ export async function uploadVerificationDoc(
   file: File,
 ): Promise<{ url: string; path: string }> {
   if (!ALLOWED_DOC_TYPES.has(file.type)) {
-    throw new Error(
+    throw new StorageValidationError(
       `Invalid document type "${file.type}". Accepted: PDF, JPEG, PNG.`,
     );
   }
   if (file.size > DOC_MAX_BYTES) {
-    throw new Error(
+    throw new StorageValidationError(
       `Document "${file.name}" exceeds 10 MB limit (${(file.size / 1024 / 1024).toFixed(1)} MB).`,
     );
   }
@@ -116,7 +132,7 @@ export async function uploadVerificationDoc(
     .upload(path, file, { contentType: file.type, upsert: false });
 
   if (error) {
-    throw new Error(`Document upload failed: ${error.message}`);
+    throw new StorageError(`Document upload failed: ${error.message}`);
   }
 
   const {

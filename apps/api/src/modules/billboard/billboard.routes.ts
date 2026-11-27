@@ -9,6 +9,10 @@ import {
   ValidationError,
   NotFoundError,
 } from "@/src/modules/billboard/billboard.service";
+import {
+  StorageError,
+  StorageValidationError,
+} from "@/src/lib/storage";
 
 /**
  * Public listing endpoints — no auth overhead.
@@ -75,6 +79,18 @@ export const billboardPublicRoutes = new Elysia({ prefix: "/billboards" })
  */
 export const billboardRoutes = new Elysia({ prefix: "/billboards" })
   .use(authPlugin)
+  .get("/mine", async ({ authUser, token, set }) => {
+    const authorization = await authorizeBusinessOperation(
+      authUser,
+      token,
+      "owner",
+    );
+    if (!authorization.allowed) {
+      set.status = authorization.status;
+      return { success: false, error: authorization.error };
+    }
+    return await BillboardService.listOwnerBillboards(authorization.authUser.id);
+  })
   .post(
     "/",
     async ({ authUser, token, request, set }) => {
@@ -189,6 +205,14 @@ export const billboardRoutes = new Elysia({ prefix: "/billboards" })
         }
         if (error instanceof NotFoundError) {
           set.status = 404;
+          return { success: false, error: error.message };
+        }
+        if (error instanceof StorageValidationError) {
+          set.status = 400;
+          return { success: false, error: error.message };
+        }
+        if (error instanceof StorageError) {
+          set.status = 502;
           return { success: false, error: error.message };
         }
         throw error; // Let global error handler deal with unexpected errors

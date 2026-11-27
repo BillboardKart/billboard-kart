@@ -427,7 +427,8 @@ export class BillboardService {
 
         // Create Billboard
         const slug = `${slugify(v.billboardName)}-${generateUniqueSuffix()}`;
-        const sizeDisplay = `${v.widthFt.toString()}×${v.heightFt.toString()} ft`;
+        // size_display is a GENERATED ALWAYS column in Postgres
+        // (width_ft || '×' || height_ft || ' ft') — do not insert it.
 
         const billboard = await tx.billboard.create({
           data: {
@@ -440,7 +441,6 @@ export class BillboardService {
             description: body.visibilityNotes?.trim() || null,
             widthFt: v.widthFt,
             heightFt: v.heightFt,
-            sizeDisplay,
             visibilityLabel: body.visibilityNotes?.trim() || null,
             dailyReach: v.dailyReach,
             lifecycleStatus: BillboardLifecycleStatus.active,
@@ -757,6 +757,62 @@ export class BillboardService {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
+    };
+  }
+
+  /**
+   * Lists all billboards owned by a user for the Owner Inventory page.
+   * Unlike listBillboards, this includes every lifecycle status
+   * (draft, pending_review, active, etc.) — owners must see their
+   * full inventory, not just advertiser-visible listings.
+   */
+  static async listOwnerBillboards(ownerId: string) {
+    const items = await prisma.billboard.findMany({
+      where: { ownerId, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        lifecycleStatus: true,
+        quickStatus: true,
+        sizeDisplay: true,
+        address: {
+          select: {
+            neighborhood: true,
+            landmark: true,
+            city: { select: { name: true, stateRegion: true } },
+          },
+        },
+        media: {
+          select: { fileUrl: true, isPrimary: true, sortOrder: true },
+          orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
+          take: 1,
+        },
+        pricing: {
+          where: { effectiveTo: null },
+          select: { pricePerMonth: true, currencyCode: true },
+          take: 1,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      success: true,
+      data: items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        slug: item.slug,
+        lifecycleStatus: item.lifecycleStatus,
+        quickStatus: item.quickStatus,
+        sizeDisplay: item.sizeDisplay,
+        city: item.address.city.name,
+        stateRegion: item.address.city.stateRegion,
+        area: item.address.neighborhood ?? item.address.landmark,
+        imageUrl: item.media[0]?.fileUrl ?? null,
+        pricePerMonth: item.pricing[0]?.pricePerMonth ?? null,
+        currencyCode: item.pricing[0]?.currencyCode ?? "INR",
+      })),
     };
   }
 
